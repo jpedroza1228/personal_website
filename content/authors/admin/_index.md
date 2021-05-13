@@ -3,25 +3,31 @@ bio: My research interests include distributed robotics, mobile computing and pr
   matter.
 education:
   courses:
-  - course: PhD in Artificial Intelligence
-    institution: Stanford University
-    year: 2012
-  - course: MEng in Artificial Intelligence
-    institution: Massachusetts Institute of Technology
-    year: 2009
-  - course: BSc in Artificial Intelligence
-    institution: Massachusetts Institute of Technology
-    year: 2008
+  - course: PhD in Prevention Science
+    institution: University of Oregon
+    year: 2021
+  - course: MS in Prevention Science
+    institution: University of Oregon
+    year: 2020
+  - course: MA in Health Psychology
+    institution: California State University, Dominguez Hills
+    year: 2017
+  - course: BA in Psychology
+    institution: California State Polytechnic University, Pomona
+    year: 2014
 email: ""
 highlight_name: false
 interests:
-- Artificial Intelligence
-- Computational Linguistics
-- Information Retrieval
+- Data Visualization
+- Open Science
+- Addressing Latinx/a/o Health Disparities
+- 
 organizations:
-- name: Stanford University
-  url: https://www.stanford.edu/
-role: Professor of Artificial Intelligence
+- name: University of Oregon
+  url: https://www.uoregon.edu/
+- name: Prevention Science Institute
+  url: https://psi.uoregon.edu/
+role: Doctoral Candidate in Prevention Science
 social:
 - icon: envelope
   icon_pack: fas
@@ -31,18 +37,18 @@ social:
   icon: twitter
   icon_pack: fab
   label: Follow me on Twitter
-  link: https://twitter.com/GeorgeCushen
+  link: https://twitter.com/jp_prev_uo
 - icon: graduation-cap
   icon_pack: fas
-  link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
+  link: https://scholar.google.com/citations?user=_LpAFsIAAAAJ&hl=en&oi=ao
 - icon: github
   icon_pack: fab
-  link: https://github.com/gcushen
+  link: http://github.com/jpedroza1228
 - icon: linkedin
   icon_pack: fab
-  link: https://www.linkedin.com/
+  link: https://www.linkedin.com/in/jonathan-a-pedroza-5721a7120/
 superuser: true
-title: Nelson Bighetti
+title: Jonathan A. Pedroza (JP)
 ---
 
 Nelson Bighetti is a professor of artificial intelligence at the Stanford AI Lab. His research interests include distributed robotics, mobile computing and programmable matter. He leads the Robotic Neurobiology group, which develops self-reconfiguring robots, systems of self-organizing robots, and mobile sensor networks.
