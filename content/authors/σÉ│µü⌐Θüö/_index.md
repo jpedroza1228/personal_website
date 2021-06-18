@@ -3,15 +3,18 @@ bio: My research interests include distributed robotics, mobile computing and pr
   matter.
 education:
   courses:
-  - course: PhD in Artificial Intelligence
-    institution: Stanford University
-    year: 2012
-  - course: MEng in Artificial Intelligence
-    institution: Massachusetts Institute of Technology
-    year: 2009
-  - course: BSc in Artificial Intelligence
-    institution: Massachusetts Institute of Technology
-    year: 2008
+  - course: PhD in Prevention Science with Data Science *specialization* in Educational Leadership
+    institution: University of Oregon
+    year: 2021
+  - course: MS in Prevention Science
+    institution: University of Oregon
+    year: 2020
+  - course: MA in Health Psychology
+    institution: California State University, Dominguez Hills
+    year: 2017
+  - course: BA in Psychology with *Minor* in Chicana/o & Latina/o Studies
+    institution: California State Polytechnic University, Pomona
+    year: 2014
 email: ""
 interests:
 - Artificial Intelligence
@@ -27,10 +30,10 @@ social:
   link: '#contact'
 - icon: twitter
   icon_pack: fab
-  link: https://twitter.com/GeorgeCushen
+  link: https://twitter.com/jp_prev_uo
 - icon: graduation-cap
   icon_pack: fas
-  link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
+  link: https://scholar.google.com/citations?user=_LpAFsIAAAAJ&hl=en&oi=ao
 - icon: github
   icon_pack: fab
   link: https://github.com/gcushen
