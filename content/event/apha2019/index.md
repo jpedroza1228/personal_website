@@ -21,7 +21,7 @@ address:
   region: PA
   street: 1101 Arch St
 all_day: false
-authors: []
+authors: [Jonathan A. Pedroza, Nichole R. Kelly, & Elizabeth L. Budd]
 date: "2019-11-05T08:10:00Z"
 date_end: "2019-11-05T08:30:00Z"
 event: American Public Health Association
@@ -36,27 +36,12 @@ links:
   name: Follow
   url: https://twitter.com/jp_prev_uo
 location: Philadelphia Convention Center
-projects:
-- internal-project
-publishDate: "2017-01-01T00:00:00Z"
-slides: example
+slides: apha_presentation
 summary: An example talk using Wowchemy's Markdown slides feature.
 tags: []
-title: Example Talk
+title: My Presentation at American Public Health Association
 url_code: ""
 url_pdf: ""
-url_slides: ""
+url_slides: "static/apha_presentation.pptx"
 url_video: ""
 ---
-
-{{% callout note %}}
-Click on the **Slides** button above to view the built-in slides feature.
-{{% /callout %}}
-
-Slides can be added in a few ways:
-
-- **Create** slides using Wowchemy's [*Slides*](https://wowchemy.com/docs/managing-content/#create-slides) feature and link using `slides` parameter in the front matter of the talk file
-- **Upload** an existing slide deck to `static/` and link using `url_slides` parameter in the front matter of the talk file
-- **Embed** your slides (e.g. Google Slides) or presentation video on this page using [shortcodes](https://wowchemy.com/docs/writing-markdown-latex/).
-
-Further event details, including [page elements](https://wowchemy.com/docs/writing-markdown-latex/) such as image galleries, can be added to the body of this page.
