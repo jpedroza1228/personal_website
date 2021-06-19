@@ -1,4 +1,4 @@
- A-
+ ---
 abstract: Perceived neighborhood walkability (PNW) is associated with increased physical activity (PA) and better 
   health outcomes. Limited research has examined these associations among Latinx populations, with few considering the
   role of acculturation (i.e., acclimation to U.S. norms). This study examined the association between PNW and PA and how
