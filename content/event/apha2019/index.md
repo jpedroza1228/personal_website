@@ -13,28 +13,28 @@ address:
   region: PA
   street: 1101 Arch St
 all_day: false
-authors: []
+authors: [Jonathan A. Pedroza, Nichole R. Kelly, & Elizabeth L. Budd]
 date: "2019-11-05T08:10:00Z"
 date_end: "2019-11-05T08:30:00Z"
 event: American Public Health Association
 event_url: https://www.apha.org/events-and-meetings/apha-calendar/2019/apha-annual-meeting-and-expo
 featured: false
 image:
-  caption: 'Image credit: [**Unsplash**](https://unsplash.com/photos/bzdhc5b3Bxs)'
+  caption: 
   focal_point: Right
 links:
 - icon: twitter
   icon_pack: fab
   name: Follow
-  url: https://twitter.com/georgecushen
-location: Wowchemy HQ
+  url: https://twitter.com/jp_prev_uo
+location: Philadelphia Convention Center
 projects:
 - internal-project
 publishDate: "2017-01-01T00:00:00Z"
 slides: example
 summary: An example talk using Wowchemy's Markdown slides feature.
 tags: []
-title: Example Talk
+title: APHA 2019 Presentation
 url_code: ""
 url_pdf: ""
 url_slides: ""
