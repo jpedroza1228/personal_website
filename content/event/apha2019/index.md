@@ -36,12 +36,13 @@ links:
   name: Follow
   url: https://twitter.com/jp_prev_uo
 location: Philadelphia Convention Center
-slides: apha_presentation
+projects:
+slides: example
 summary: An example talk using Wowchemy's Markdown slides feature.
 tags: []
 title: My Presentation at American Public Health Association
 url_code: ""
 url_pdf: ""
-url_slides: "static/apha_presentation.pptx"
+url_slides: "/static/apha_presentation.pptx"
 url_video: ""
 ---
