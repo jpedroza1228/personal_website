@@ -1,5 +1,19 @@
 ---
-abstract: Perceived neighborhood walkability (PNW) is associated with increased physical activity (PA) and better health outcomes. Limited research has examined these associations among Latinx populations, with few considering the role of acculturation (i.e., acclimation to U.S. norms). This study examined the association between PNW and PA and how this association may vary by level of acculturation among a diverse, U.S. national sample of Latinx adults. 798 Latinx adults (Mage = 39.64±15.05y; 59% female, 61% overweight) completed an online survey through Qualtrics Panels and reported demographic information, generational status, PNW (Neighborhood Environment Walkability Scale-Abbreviated); acculturation, including Native/U.S. cultural identity and language use (The Abbreviated Multidimensional Acculturation Scale); and PA (Health Promoting Lifestyle Profile II). Five hierarchical linear regressions were conducted. PNW was positively associated with PA (βs = .20-.24, ps < .001). U.S. cultural identity was the only significant moderator (β = .11, p = .001). The strongest association was in Latinx adults with high U.S. cultural identity (β = .30, p < .001) compared to those with average (β = .21, p < .001) or low U.S. cultural identity (β = .12, p = .006). Findings highlight the important role of acculturation in how Latinx adults interact with their neighborhood. U.S. cultural identity strengthened the association between PNW and PA, while it was strongest in Latinx with a stronger sense of U.S. culture. These findings offer value in targeting PNW in Latinx populations, regardless of their degree of acculturation to U.S. norms.
+abstract: Perceived neighborhood walkability (PNW) is associated with increased physical activity (PA) and better 
+  health outcomes. Limited research has examined these associations among Latinx populations, with few considering the
+  role of acculturation (i.e., acclimation to U.S. norms). This study examined the association between PNW and PA and how
+  this association may vary by level of acculturation among a diverse, U.S. national sample of Latinx adults. 798 Latinx
+  adults (Mage = 39.64±15.05y; 59% female, 61% overweight) completed an online survey through Qualtrics Panels and
+  reported demographic information, generational status, PNW (Neighborhood Environment Walkability Scale-Abbreviated);
+  acculturation, including Native/U.S. cultural identity and language use (The Abbreviated Multidimensional Acculturation
+  Scale); and PA (Health Promoting Lifestyle Profile II). Five hierarchical linear regressions were conducted. PNW was
+  positively associated with PA (βs = .20-.24, ps < .001). U.S. cultural identity was the only significant moderator (β =
+  .11, p = .001). The strongest association was in Latinx adults with high U.S. cultural identity (β = .30, p < .001)
+  compared to those with average (β = .21, p < .001) or low U.S. cultural identity (β = .12, p = .006). Findings highlight
+  the important role of acculturation in how Latinx adults interact with their neighborhood. U.S. cultural identity
+  strengthened the association between PNW and PA, while it was strongest in Latinx with a stronger sense of U.S. culture.
+  These findings offer value in targeting PNW in Latinx populations, regardless of their degree of acculturation to U.S.
+  norms.
 address:
   city: Philadelphia
   country: United States
@@ -28,11 +42,21 @@ publishDate: "2017-01-01T00:00:00Z"
 slides: example
 summary: An example talk using Wowchemy's Markdown slides feature.
 tags: []
-title: APHA 2019 Presentation
+title: Example Talk
 url_code: ""
 url_pdf: ""
 url_slides: ""
 url_video: ""
 ---
-  
-  
+
+{{% callout note %}}
+Click on the **Slides** button above to view the built-in slides feature.
+{{% /callout %}}
+
+Slides can be added in a few ways:
+
+- **Create** slides using Wowchemy's [*Slides*](https://wowchemy.com/docs/managing-content/#create-slides) feature and link using `slides` parameter in the front matter of the talk file
+- **Upload** an existing slide deck to `static/` and link using `url_slides` parameter in the front matter of the talk file
+- **Embed** your slides (e.g. Google Slides) or presentation video on this page using [shortcodes](https://wowchemy.com/docs/writing-markdown-latex/).
+
+Further event details, including [page elements](https://wowchemy.com/docs/writing-markdown-latex/) such as image galleries, can be added to the body of this page.
