@@ -21,7 +21,7 @@ address:
   region: PA
   street: 1101 Arch St
 all_day: false
-authors: [Jonathan A. Pedroza, Nichole R. Kelly, & Elizabeth L. Budd]
+authors: []
 date: "2019-11-05T08:10:00Z"
 date_end: "2019-11-05T08:30:00Z"
 event: American Public Health Association
