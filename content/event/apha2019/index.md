@@ -1,4 +1,4 @@
----
+ A-
 abstract: Perceived neighborhood walkability (PNW) is associated with increased physical activity (PA) and better 
   health outcomes. Limited research has examined these associations among Latinx populations, with few considering the
   role of acculturation (i.e., acclimation to U.S. norms). This study examined the association between PNW and PA and how
@@ -37,8 +37,8 @@ links:
   url: https://twitter.com/jp_prev_uo
 location: Philadelphia Convention Center
 projects:
-slides: example
-summary: An example talk using Wowchemy's Markdown slides feature.
+slides: apha_presentation
+summary: The abstract and slides for my 2019 APHA Presentation.
 tags: []
 title: My Presentation at American Public Health Association
 url_code: ""
