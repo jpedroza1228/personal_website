@@ -129,14 +129,6 @@ Physical activity is important as its related to many physical and mental health
 ```
 
 ```
-## No renderer backend detected. gganimate will default to writing frames to separate files
-## Consider installing:
-## - the `gifski` package for gif output
-## - the `av` package for video output
-## and restarting the R session
-```
-
-```
 ## Warning: package 'transformr' was built under R version 4.0.5
 ```
 
@@ -420,11 +412,11 @@ main_effects_var <- ranef(ltpa_long_access, condVar = TRUE)
 main_effects_var <- as.data.frame(main_effects_var)
 
 main_effects_var <- main_effects_var %>% 
-  rename(main_effects_term = term,
+  mutate(main_effects_term = term,
          county_fips_code = grp,
          main_effects_diff = condval,
-         main_effects_se = condsd) %>% 
-  mutate(county_fips_code = as.numeric(county_fips_code))
+         main_effects_se = condsd,
+         county_fips_code = as.numeric(county_fips_code))
 
 main_effects_var$no_name_county <- unique(ca$no_name_county)
 
@@ -464,4 +456,43 @@ ca %>%
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
+Finally, a gif of the change of LTPA from 2016 to 2020.
+
+
+```r
+library(gganimate)
+
+ca_animate <- ca_visual %>%
+  ggplot(aes(frame = year,
+             cumulative = TRUE)) +
+  geom_polygon(aes(x = long, y = lat, 
+                   group = group, 
+                   fill = ltpa_percent),
+               color = 'black') +
+  scale_fill_gradientn(colors = brewer.pal(n = 5, name = 'RdYlGn')) + 
+  theme_classic() +
+  transition_time(year) +
+  labs(x = 'Longitude',
+       y = 'Latitude',
+       title = 'Leisure-time Physical Activity\nChange Over Time',
+       subtitle = 'Year: {frame_time}') +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        plot.title = element_text(size = 20),
+        plot.subtitle = element_text(size = 18))
+
+library(gifski)
+```
+
+```
+## Warning: package 'gifski' was built under R version 4.0.5
+```
+
+```r
+animate(ca_animate, renderer = gifski_renderer())
+```
+
+![](index_files/figure-html/unnamed-chunk-3-1.gif)<!-- -->
 
