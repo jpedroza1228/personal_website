@@ -1,0 +1,188 @@
+---
+title: Tidy Tuesday - Coffee Rating
+author: Jonathan Pedroza
+date: '2021-05-13'
+slug: tidy-tuesday-coffee-rating
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-05-13T13:54:15-07:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r}
+library(tidyverse)
+
+coffee <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv') %>% 
+  mutate(species = as.factor(species))
+
+```
+
+```{r}
+psych::describe(coffee, na.rm = TRUE)[c("n", "mean", "sd", "min", "max", "skew", "kurtosis")]
+summary(coffee)
+
+coffee %>% 
+  group_by(species) %>% 
+  summarize(n = n(),
+            prop = n/1339)
+```
+
+```{r}
+library(tidymodels)
+
+set.seed(05132021)
+
+coffee_split <- initial_split(coffee, strata = "total_cup_points")
+
+coffee_train <- training(coffee_split)
+coffee_test <- training(coffee_split)
+```
+
+```{r}
+set.seed(05132021)
+
+coffee_fold <- vfold_cv(coffee_train, strata = "total_cup_points", v = 10)
+```
+
+```{r}
+set.seed(05132021)
+
+char_recipe <- recipe(total_cup_points ~ aroma + flavor + aftertaste + acidity + body + balance + uniformity + clean_cup + sweetness, data = coffee_train) %>% 
+  step_zv(all_predictors()) %>% 
+  step_nzv(all_predictors())
+```
+
+```{r}
+
+set.seed(05132021)
+
+lr_mod <- linear_reg()  %>%
+  set_engine("glmnet") %>% 
+  set_mode("regression") %>%  
+  set_args(penalty = 0,
+           mixture = 0)
+
+lr_flo <- workflow() %>% 
+  add_recipe(char_recipe) %>% 
+  add_model(lr_mod)
+
+lr_fit <- tune::fit_resamples(object = lr_flo,
+                    resamples = coffee_fold,
+                    control = control_resamples(verbose = TRUE,
+                                                save_pred = TRUE))
+
+lr_fit %>% 
+  collect_metrics()
+
+lr_fit %>% 
+  collect_metrics(summarize = FALSE)
+```
+
+```{r}
+set.seed(05132021)
+
+lasso_mod <- linear_reg()  %>%
+  set_engine("glmnet") %>% 
+  set_mode("regression") %>% 
+  set_args(penalty = 0,
+           mixture = 1)
+
+lasso_flo <- lr_flo %>% 
+  update_model(lasso_mod) 
+
+lasso_fit <- tune::fit_resamples(object = lasso_flo,
+                    resamples = coffee_fold,
+                    metrics = metric_set(rmse),
+                    control = control_resamples(verbose = TRUE,
+                                                save_pred = TRUE))
+
+lasso_fit %>% 
+  collect_metrics()
+
+lasso_fit %>% 
+  collect_metrics(summarize = FALSE)
+
+```
+
+```{r}
+set.seed(05132021)
+
+elastic_tune_mod <- linear_reg()  %>%
+  set_engine("glmnet") %>% 
+  set_mode("regression") %>% 
+  set_args(penalty = tune(),
+           mixture = tune())
+
+elastic_tune_flo <- lr_flo %>% 
+  update_model(elastic_tune_mod) 
+
+elastic_grid <- grid_regular(penalty(), mixture(), levels = 10)
+
+elastic_fit <- tune_grid(elastic_tune_flo,
+                          resamples = coffee_fold,
+                          grid = elastic_grid,
+                    metrics = metric_set(rmse),
+                           control = tune::control_resamples(save_pred = TRUE))
+
+elastic_fit %>% 
+  collect_metrics(summarize = FALSE)
+
+elastic_fit %>% 
+  show_best(metric = "rmse", n = 5)
+
+elastic_fit %>% 
+  select_best(metric = "rmse")
+
+elastic_fit %>% 
+  collect_metrics() %>% 
+  ggplot(aes(penalty, mean, color = .metric)) +
+  geom_errorbar(aes(ymin = mean - std_err,
+                    ymax = mean + std_err),
+                alpha = .5) +
+  geom_line(size = 1.25) 
+
+autoplot(elastic_fit, metric = "rmse") + geom_smooth(se = FALSE)
+
+library(vip)
+
+elastic_train_best_fit <- elastic_fit %>%
+  select_best(metric = "rmse")
+
+final_workflow <- finalize_workflow(elastic_tune_flo, elastic_train_best_fit)
+
+final_workflow %>%
+  fit(coffee_train) %>%
+  pull_workflow_fit() %>%
+  vi(lambda = elastic_train_best_fit$penalty) %>%
+  mutate(
+    importance = abs(Importance),
+    variable = fct_reorder(Variable, importance)
+  ) %>%
+  ggplot(aes(x = importance, y = variable, fill = Sign)) +
+  geom_col() +
+  scale_x_continuous(expand = c(0, 0)) +
+  labs(y = NULL)
+
+```
+
+```{r finalize regression}
+set.seed(05132021)
+
+test_set_model_results <- last_fit(final_workflow,
+                                   split = coffee_split)
+
+test_set_model_results %>%
+  collect_metrics()
+
+```
+
+
+
