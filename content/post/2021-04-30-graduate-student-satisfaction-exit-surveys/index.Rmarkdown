@@ -126,6 +126,7 @@ program_experience(name = "inclu_stu_sex_orient")
 Lastly, I decided to look into the difference between the variables I'm most interested in. First, I wanted to look at how graduate students perceive inclusiveness of students of color within their departments. Another variable I was interested in was inclusiveness of first-generation graduate students. Thanks to the `plotly` package I was able to include some interactive components to the visuals. Specifically zooming in to specific departments give a better idea of the difference between agreeing and disagreeing on these topics. With plotly, you can also click on an option in the legend to only see those values. I also removed the strongly agree option since the agree applied to students that strongly agreed or agreed with the statment. 
 
 ```{r}
+library(plotly)
 
 stu_color <- exit %>% 
   pivot_longer(cols = tidyselect::vars_select(names(exit), starts_with("inclu_stu_color")),
@@ -142,8 +143,11 @@ stu_color <- exit %>%
   coord_flip() +
   scale_color_manual(values = c("#d74122","#669b3e"))
 
-plotly::ggplotly(stu_color)
-
+stu_plot <- ggplotly(stu_color) %>%  layout(legend = list(orientation = "h",
+                                                          xanchor = "center",
+                                                          x = 0,
+                                                          y = -60)) 
+stu_plot
 
 firstgen <- exit %>% 
   pivot_longer(cols = tidyselect::vars_select(names(exit), starts_with("inclu_first_gen")),
@@ -160,6 +164,10 @@ firstgen <- exit %>%
   coord_flip() +
   scale_color_manual(values = c("#d74122","#669b3e"))
 
-plotly::ggplotly(firstgen)
+first_plot <- ggplotly(firstgen) %>%  layout(legend = list(orientation = "h",
+                                                          xanchor = "center",
+                                                          x = 0,
+                                                          y = -60)) 
+first_plot
 
 ```
