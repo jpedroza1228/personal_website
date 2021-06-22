@@ -43,6 +43,6 @@ tags: []
 title: My Presentation at American Public Health Association
 url_code: ""
 url_pdf: ""
-url_slides: "/static/apha_presentation.pptx"
+url_slides: "https://drive.google.com/file/d/1Rw16m9cBGJPVefPTVvdy_8WYmeEai9hy/view?usp=sharing"
 url_video: ""
 ---
