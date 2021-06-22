@@ -16,6 +16,16 @@ abstract:
   Implications for college students and professors include increasing metacognition about technology 
   use in the classroom and taking “tech breaks” to reduce technology anxiety.
 author_notes:
+- Equal contribution
+- Equal contribution
+- Equal contribution
+- Equal contribution
+- Equal contribution
+- Equal contribution
+- Equal contribution
+- Equal contribution
+- Equal contribution
+- Equal contribution
 authors:
 - Larry D. Rosen
 - L. Mark Carrier
