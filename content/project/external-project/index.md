@@ -1,13 +1,13 @@
 ---
 date: "2021-06-21T00:00:00Z"
-external_link: https://jpedroza1228.github.io/gradschool_dashboard/
+external_link: 
 image:
 summary: This is the dashboard I created with the University of Oregon's (UO) Graduate School at `external_link`.
 tags:
 title: UO Graduate School Dashboard
 ---
 
-This link leads to a dashboard I created with the UO's Graduate School. This project was a lot of work since there were major discrepancies between the data on UO courses and graduate employee (GEs) data from the Graduate School. After I was able to join the two datasets together, I was able to create a dataframe with all course data from the UO from 2014 to 2019. This dataframe was large since there are a lot of courses at the UO. Instead I decided to get the average values for undergraduate course credits, teaching GE allocation, and teaching full-time equivalent (FTE) work by department and year. 
+This [link](https://jpedroza1228.github.io/gradschool_dashboard/) leads to a dashboard I created with the UO's Graduate School. This project was a lot of work since there were major discrepancies between the data on UO courses and graduate employee (GEs) data from the Graduate School. After I was able to join the two datasets together, I was able to create a dataframe with all course data from the UO from 2014 to 2019. This dataframe was large since there are a lot of courses at the UO. Instead I decided to get the average values for undergraduate course credits, teaching GE allocation, and teaching full-time equivalent (FTE) work by department and year. 
 
 The first page of the dashbaoard gives some descriptives of teaching GEs across UO departments from 2014-2019. The colors used are based on Datsun car colors from the 70s. For those that don't know, Datsun is a car company that was the predecessor to Nissan. Some cars that are well known are the [Datsun 510](https://www.google.com/search?q=datsun+510&rlz=1C1CHBF_enUS926US926&sxsrf=ALeKk01D_WVsnuPBxtj5wVZYLVYctei-bQ:1624346080198&source=lnms&tbm=isch&sa=X&ved=2ahUKEwiKrOjY2KrxAhUCHTQIHTfVCPMQ_AUoAXoECAQQAw&biw=1920&bih=880) and the [Datsun 240z](https://www.google.com/search?q=datsun+240&tbm=isch&ved=2ahUKEwiHk_nZ2KrxAhWxBDQIHRd8Db4Q2-cCegQIABAA&oq=datsun+240&gs_lcp=CgNpbWcQAzIFCAAQsQMyAggAMgIIADICCAAyBQgAELEDMgIIADICCAAyAggAMgIIADICCAA6BAgjECc6BAgAEEM6BwgAELEDEENQgdgBWPDrAWCE5AJoAHAAeACAAUeIAdwEkgECMTCYAQCgAQGqAQtnd3Mtd2l6LWltZ8ABAQ&sclient=img&ei=4o3RYIeaIrGJ0PEPl_i18As&bih=880&biw=1920&rlz=1C1CHBF_enUS926US926). The next two plots go deeper into undergraduate course credits and teaching GE allocation by department for the three main quarters (e.g., Fall, Winter, Spring) of the academic year. These plots are also interactive and allow for the reader to click on the name of the department on the legend to examine the number of each construct for one department. 
 
