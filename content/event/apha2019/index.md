@@ -28,8 +28,6 @@ event: American Public Health Association
 event_url: https://www.apha.org/events-and-meetings/apha-calendar/2019/apha-annual-meeting-and-expo
 featured: false
 image:
-  caption: 
-  focal_point: Right
 links:
 - icon: twitter
   icon_pack: fab
@@ -42,7 +40,7 @@ summary: The abstract and slides for my 2019 APHA Presentation.
 tags: []
 title: My Presentation at American Public Health Association
 url_code: ""
-url_pdf: "https://drive.google.com/file/d/1BBqOpx4Wgp-2LPkNt-l98-bSz4psPT0w/view?usp=sharing"
+url_pdf: https://drive.google.com/file/d/1BBqOpx4Wgp-2LPkNt-l98-bSz4psPT0w/view?usp=sharing
 url_slides: ""
 url_video: ""
 ---
