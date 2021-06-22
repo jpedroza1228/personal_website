@@ -18,50 +18,26 @@ projects: []
 ---
 
 
-```r
-library(tidyverse)
-```
 
-```
-## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
-```
+## Predicting Process of Green Coffee Beans
 
-```
-## v ggplot2 3.3.3     v purrr   0.3.4
-## v tibble  3.1.1     v dplyr   1.0.5
-## v tidyr   1.1.3     v stringr 1.4.0
-## v readr   1.4.0     v forcats 0.5.1
-```
+With coffee being a hobby of mine, I was scrolling through past Tidy Tuesdays and found one on coffee ratings. Originally I thought looking at predictions of total cup points, but I assumed with all the coffee tasting characteristics that it wouldn't really tell me anything. Instead, I decided to look into the processing method, as there are different taste characteristics between washed and other processing methods. 
 
-```
-## Warning: package 'ggplot2' was built under R version 4.0.4
-```
-
-```
-## Warning: package 'tibble' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'tidyr' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'dplyr' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'forcats' was built under R version 4.0.5
-```
-
-```
-## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()
-```
 
 ```r
 coffee <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv') %>% 
-  mutate(species = as.factor(species))
+  mutate(species = as.factor(species),
+         process = recode(processing_method, "Washed / Wet" = "washed",
+                          "Semi-washed / Semi-pulped" = "not_washed",
+                          "Pulped natural / honey" = "not_washed",
+                          "Other" = "not_washed",
+                          "Natural / Dry" = "not_washed",
+                          "NA" = NA_character_),
+         process = as.factor(process),
+         process = relevel(process, ref = "washed"),
+         country_of_origin = as.factor(country_of_origin)) %>% 
+  drop_na(process) %>% 
+  filter(country_of_origin != "Cote d?Ivoire")
 ```
 
 ```
@@ -92,888 +68,3545 @@ coffee <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesda
 ## i Use `spec()` for the full column specifications.
 ```
 
+After looking at the distributions of procssing methods, I also decided to make the processing method binary with washed and not washed. This worked out better for the prediction models. There are also some descriptives of each variable. 
+
+
+```r
+coffee %>% 
+  ggplot(aes(processing_method)) +
+  geom_bar(color = "white", fill = "dodgerblue") +
+  coord_flip()
+```
+
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+
+```r
+coffee %>% 
+  ggplot(aes(process)) +
+  geom_bar(color = "white", fill = "dodgerblue") +
+  coord_flip()
+```
+
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-2.png" width="672" />
 
 ```r
 psych::describe(coffee, na.rm = TRUE)[c("n", "mean", "sd", "min", "max", "skew", "kurtosis")]
 ```
 
 ```
-##                           n    mean      sd min       max   skew kurtosis
-## total_cup_points       1339   82.09    3.50   0     90.58 -10.42   226.88
-## species*               1339    1.02    0.14   1      2.00   6.69    42.77
-## owner*                 1332  147.41   83.74   1    315.00   0.12    -1.00
-## country_of_origin*     1338   14.89   10.31   1     36.00   0.33    -1.17
-## farm_name*              980  296.54  167.74   1    571.00  -0.01    -1.28
-## lot_number*             276  103.05   67.38   1    227.00   0.21    -1.27
-## mill*                  1024  218.82  134.22   1    460.00   0.23    -1.27
-## ico_number*            1188  401.58  271.04   1    847.00   0.09    -1.27
-## company*               1130  148.29   82.06   1    281.00  -0.06    -1.25
-## altitude*              1113  173.87  110.54   1    396.00   0.32    -1.03
-## region*                1280  188.66   96.37   1    356.00  -0.04    -1.10
-## producer*              1108  348.55  194.03   1    691.00  -0.02    -1.14
-## number_of_bags         1339  154.18  129.99   0   1062.00   0.31     0.21
-## bag_weight*            1339   31.14   20.00   1     56.00  -0.35    -1.64
-## in_country_partner*    1339   11.03    8.02   1     27.00   0.27    -1.50
-## harvest_year*          1292   15.24    4.79   1     46.00   2.32    10.07
-## grading_date*          1339  276.93  164.90   1    567.00   0.10    -1.20
-## owner_1*               1332  149.87   85.05   1    319.00   0.11    -1.01
-## variety*               1113   12.65    9.78   1     29.00   0.62    -1.25
-## processing_method*     1169    3.98    1.67   1      5.00  -1.13    -0.62
-## aroma                  1339    7.57    0.38   0      8.75  -6.23   120.77
-## flavor                 1339    7.52    0.40   0      8.83  -5.18    94.25
-## aftertaste             1339    7.40    0.40   0      8.67  -4.78    83.11
-## acidity                1339    7.54    0.38   0      8.75  -5.93   115.52
-## body                   1339    7.52    0.37   0      8.58  -6.78   129.25
-## balance                1339    7.52    0.41   0      8.75  -4.77    85.18
-## uniformity             1339    9.83    0.55   0     10.00  -6.95    84.91
-## clean_cup              1339    9.84    0.76   0     10.00  -7.43    70.14
-## sweetness              1339    9.86    0.62   0     10.00  -7.54    84.88
-## cupper_points          1339    7.50    0.47   0     10.00  -2.81    49.44
-## moisture               1339    0.09    0.05   0      0.28  -0.99    -0.18
-## category_one_defects   1339    0.48    2.55   0     63.00  15.03   307.10
-## quakers                1338    0.17    0.83   0     11.00   6.92    58.02
-## color*                 1121    2.79    0.64   1      4.00  -1.53     2.52
-## category_two_defects   1339    3.56    5.31   0     55.00   3.66    19.97
-## expiration*            1339  275.83  164.50   1    566.00   0.11    -1.20
-## certification_body*    1339   10.70    7.63   1     26.00   0.24    -1.50
-## certification_address* 1339   17.56    8.34   1     32.00   0.03    -1.16
-## certification_contact* 1339   11.19    8.06   1     29.00   0.28    -1.12
-## unit_of_measurement*   1339    1.86    0.34   1      2.00  -2.12     2.51
-## altitude_low_meters    1109 1750.71 8669.44   1 190164.00  20.27   421.25
-## altitude_high_meters   1109 1799.35 8668.81   1 190164.00  20.26   420.92
-## altitude_mean_meters   1109 1775.03 8668.63   1 190164.00  20.27   421.18
+##                           n    mean      sd   min       max  skew kurtosis
+## total_cup_points       1168   82.06    2.71 59.83     90.58 -1.95     9.26
+## species*               1168    1.01    0.09  1.00      2.00 10.65   111.61
+## owner*                 1161  133.43   76.78  1.00    287.00  0.10    -1.00
+## country_of_origin*     1168   14.79   10.08  1.00     36.00  0.31    -1.12
+## farm_name*              883  271.04  154.16  1.00    524.00  0.00    -1.27
+## lot_number*             239   93.18   59.86  1.00    202.00  0.18    -1.27
+## mill*                   931  196.60  122.71  1.00    419.00  0.24    -1.28
+## ico_number*            1057  360.89  242.05  1.00    753.00  0.08    -1.27
+## company*               1077  141.73   76.77  1.00    266.00 -0.10    -1.23
+## altitude*              1014  154.54   98.40  1.00    351.00  0.32    -1.04
+## region*                1137  174.91   87.74  1.00    325.00 -0.11    -1.09
+## producer*               995  314.12  175.27  1.00    624.00 -0.04    -1.12
+## number_of_bags         1168  153.80  130.08  1.00   1062.00  0.37     0.50
+## bag_weight*            1168   23.50   16.67  1.00     45.00 -0.23    -1.71
+## in_country_partner*    1168    9.68    7.04  1.00     25.00  0.41    -1.31
+## harvest_year*          1161    5.82    2.95  1.00     14.00  0.76    -0.46
+## grading_date*          1168  242.39  144.52  1.00    495.00  0.11    -1.21
+## owner_1*               1161  135.29   77.68  1.00    290.00  0.09    -1.00
+## variety*               1089   12.61    9.77  1.00     29.00  0.63    -1.24
+## processing_method*     1168    3.98    1.67  1.00      5.00 -1.13    -0.62
+## aroma                  1168    7.56    0.31  5.08      8.75 -0.55     4.46
+## flavor                 1168    7.51    0.34  6.08      8.83 -0.34     1.73
+## aftertaste             1168    7.39    0.34  6.17      8.67 -0.45     1.36
+## acidity                1168    7.53    0.31  5.25      8.75 -0.30     3.31
+## body                   1168    7.52    0.28  6.33      8.50 -0.10     0.89
+## balance                1168    7.51    0.34  6.08      8.58 -0.10     1.17
+## uniformity             1168    9.84    0.50  6.00     10.00 -4.21    20.83
+## clean_cup              1168    9.84    0.75  0.00     10.00 -6.98    62.29
+## sweetness              1168    9.89    0.52  1.33     10.00 -7.53    80.78
+## cupper_points          1168    7.48    0.40  5.17      8.75 -0.64     2.79
+## moisture               1168    0.09    0.05  0.00      0.17 -1.41     0.35
+## category_one_defects   1168    0.51    2.70  0.00     63.00 14.43   279.42
+## quakers                1167    0.17    0.82  0.00     11.00  6.87    57.30
+## color*                 1070    2.80    0.64  1.00      4.00 -1.51     2.57
+## category_two_defects   1168    3.79    5.54  0.00     55.00  3.54    18.53
+## expiration*            1168  241.61  144.11  1.00    494.00  0.12    -1.21
+## certification_body*    1168    9.38    6.65  1.00     24.00  0.37    -1.31
+## certification_address* 1168   16.58    7.33  1.00     29.00 -0.19    -1.06
+## certification_contact* 1168    9.39    7.26  1.00     26.00  0.36    -0.96
+## unit_of_measurement*   1168    1.87    0.34  1.00      2.00 -2.21     2.87
+## altitude_low_meters    1012 1796.86 9073.21  1.00 190164.00 19.36   384.12
+## altitude_high_meters   1012 1834.27 9071.86  1.00 190164.00 19.36   384.03
+## altitude_mean_meters   1012 1815.56 9072.31  1.00 190164.00 19.36   384.12
+## process*               1168    1.30    0.46  1.00      2.00  0.86    -1.27
 ```
 
-```r
-summary(coffee)
-```
+Now, its time to split the data into training and testing data. I also included the function of `strata` to stratify sampling based on process. 
 
-```
-##  total_cup_points    species        owner           country_of_origin 
-##  Min.   : 0.00    Arabica:1311   Length:1339        Length:1339       
-##  1st Qu.:81.08    Robusta:  28   Class :character   Class :character  
-##  Median :82.50                   Mode  :character   Mode  :character  
-##  Mean   :82.09                                                        
-##  3rd Qu.:83.67                                                        
-##  Max.   :90.58                                                        
-##                                                                       
-##   farm_name          lot_number            mill            ico_number       
-##  Length:1339        Length:1339        Length:1339        Length:1339       
-##  Class :character   Class :character   Class :character   Class :character  
-##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
-##                                                                             
-##                                                                             
-##                                                                             
-##                                                                             
-##    company            altitude            region            producer        
-##  Length:1339        Length:1339        Length:1339        Length:1339       
-##  Class :character   Class :character   Class :character   Class :character  
-##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
-##                                                                             
-##                                                                             
-##                                                                             
-##                                                                             
-##  number_of_bags    bag_weight        in_country_partner harvest_year      
-##  Min.   :   0.0   Length:1339        Length:1339        Length:1339       
-##  1st Qu.:  14.0   Class :character   Class :character   Class :character  
-##  Median : 175.0   Mode  :character   Mode  :character   Mode  :character  
-##  Mean   : 154.2                                                           
-##  3rd Qu.: 275.0                                                           
-##  Max.   :1062.0                                                           
-##                                                                           
-##  grading_date         owner_1            variety          processing_method 
-##  Length:1339        Length:1339        Length:1339        Length:1339       
-##  Class :character   Class :character   Class :character   Class :character  
-##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
-##                                                                             
-##                                                                             
-##                                                                             
-##                                                                             
-##      aroma           flavor       aftertaste       acidity           body      
-##  Min.   :0.000   Min.   :0.00   Min.   :0.000   Min.   :0.000   Min.   :0.000  
-##  1st Qu.:7.420   1st Qu.:7.33   1st Qu.:7.250   1st Qu.:7.330   1st Qu.:7.330  
-##  Median :7.580   Median :7.58   Median :7.420   Median :7.580   Median :7.500  
-##  Mean   :7.567   Mean   :7.52   Mean   :7.401   Mean   :7.536   Mean   :7.517  
-##  3rd Qu.:7.750   3rd Qu.:7.75   3rd Qu.:7.580   3rd Qu.:7.750   3rd Qu.:7.670  
-##  Max.   :8.750   Max.   :8.83   Max.   :8.670   Max.   :8.750   Max.   :8.580  
-##                                                                                
-##     balance        uniformity       clean_cup        sweetness     
-##  Min.   :0.000   Min.   : 0.000   Min.   : 0.000   Min.   : 0.000  
-##  1st Qu.:7.330   1st Qu.:10.000   1st Qu.:10.000   1st Qu.:10.000  
-##  Median :7.500   Median :10.000   Median :10.000   Median :10.000  
-##  Mean   :7.518   Mean   : 9.835   Mean   : 9.835   Mean   : 9.857  
-##  3rd Qu.:7.750   3rd Qu.:10.000   3rd Qu.:10.000   3rd Qu.:10.000  
-##  Max.   :8.750   Max.   :10.000   Max.   :10.000   Max.   :10.000  
-##                                                                    
-##  cupper_points       moisture       category_one_defects    quakers       
-##  Min.   : 0.000   Min.   :0.00000   Min.   : 0.0000      Min.   : 0.0000  
-##  1st Qu.: 7.250   1st Qu.:0.09000   1st Qu.: 0.0000      1st Qu.: 0.0000  
-##  Median : 7.500   Median :0.11000   Median : 0.0000      Median : 0.0000  
-##  Mean   : 7.503   Mean   :0.08838   Mean   : 0.4795      Mean   : 0.1734  
-##  3rd Qu.: 7.750   3rd Qu.:0.12000   3rd Qu.: 0.0000      3rd Qu.: 0.0000  
-##  Max.   :10.000   Max.   :0.28000   Max.   :63.0000      Max.   :11.0000  
-##                                                          NA's   :1        
-##     color           category_two_defects  expiration        certification_body
-##  Length:1339        Min.   : 0.000       Length:1339        Length:1339       
-##  Class :character   1st Qu.: 0.000       Class :character   Class :character  
-##  Mode  :character   Median : 2.000       Mode  :character   Mode  :character  
-##                     Mean   : 3.556                                            
-##                     3rd Qu.: 4.000                                            
-##                     Max.   :55.000                                            
-##                                                                               
-##  certification_address certification_contact unit_of_measurement
-##  Length:1339           Length:1339           Length:1339        
-##  Class :character      Class :character      Class :character   
-##  Mode  :character      Mode  :character      Mode  :character   
-##                                                                 
-##                                                                 
-##                                                                 
-##                                                                 
-##  altitude_low_meters altitude_high_meters altitude_mean_meters
-##  Min.   :     1      Min.   :     1       Min.   :     1      
-##  1st Qu.:  1100      1st Qu.:  1100       1st Qu.:  1100      
-##  Median :  1311      Median :  1350       Median :  1311      
-##  Mean   :  1751      Mean   :  1799       Mean   :  1775      
-##  3rd Qu.:  1600      3rd Qu.:  1650       3rd Qu.:  1600      
-##  Max.   :190164      Max.   :190164       Max.   :190164      
-##  NA's   :230         NA's   :230          NA's   :230
-```
-
-```r
-coffee %>% 
-  group_by(species) %>% 
-  summarize(n = n(),
-            prop = n/1339)
-```
-
-```
-## # A tibble: 2 x 3
-##   species     n   prop
-##   <fct>   <int>  <dbl>
-## 1 Arabica  1311 0.979 
-## 2 Robusta    28 0.0209
-```
-
-
-```r
-library(tidymodels)
-```
-
-```
-## -- Attaching packages -------------------------------------- tidymodels 0.1.1 --
-```
-
-```
-## v broom     0.7.6      v recipes   0.1.14
-## v dials     0.0.9      v rsample   0.0.8 
-## v infer     0.5.3      v tune      0.1.1 
-## v modeldata 0.1.0      v workflows 0.2.1 
-## v parsnip   0.1.4      v yardstick 0.0.7
-```
-
-```
-## Warning: package 'broom' was built under R version 4.0.5
-```
-
-```
-## -- Conflicts ----------------------------------------- tidymodels_conflicts() --
-## x scales::discard() masks purrr::discard()
-## x dplyr::filter()   masks stats::filter()
-## x recipes::fixed()  masks stringr::fixed()
-## x dplyr::lag()      masks stats::lag()
-## x yardstick::spec() masks readr::spec()
-## x recipes::step()   masks stats::step()
-```
 
 ```r
 set.seed(05132021)
 
-coffee_split <- initial_split(coffee, strata = "total_cup_points")
+coffee_split <- initial_split(coffee, strata = "process")
 
 coffee_train <- training(coffee_split)
-coffee_test <- training(coffee_split)
+coffee_test <- testing(coffee_split)
 ```
+
+I also did some cross validation for the training dataset and used the metrics I was most interested in. 
 
 
 ```r
 set.seed(05132021)
 
-coffee_fold <- vfold_cv(coffee_train, strata = "total_cup_points", v = 10)
+coffee_fold <- vfold_cv(coffee_train, strata = "process", v = 10)
+
+metric_measure <- metric_set(accuracy, mn_log_loss, roc_auc)
 ```
+
+From the beginning I was interested in the tasting characteristics and how they would predict whether the green coffee was washed or not washed. I also included the total cup points because I wanted to see the importance of that predictor on the processing method. The only feature engineering I did was to remove any zero variance in the predictors of the model.
 
 
 ```r
 set.seed(05132021)
 
-char_recipe <- recipe(total_cup_points ~ aroma + flavor + aftertaste + acidity + body + balance + uniformity + clean_cup + sweetness, data = coffee_train) %>% 
-  step_zv(all_predictors()) %>% 
-  step_nzv(all_predictors())
+char_recipe <- recipe(process ~ aroma + flavor + aftertaste +
+                        acidity + body + balance + uniformity + clean_cup +
+                        sweetness + total_cup_points,
+                      data = coffee_train) %>% 
+  step_zv(all_predictors(), -all_outcomes())
+
+char_recipe %>% 
+  prep() %>% 
+  bake(new_data = NULL) %>%
+  head()
+```
+
+```
+## # A tibble: 6 x 11
+##   aroma flavor aftertaste acidity  body balance uniformity clean_cup sweetness
+##   <dbl>  <dbl>      <dbl>   <dbl> <dbl>   <dbl>      <dbl>     <dbl>     <dbl>
+## 1  8.17   8.58       8.42    8.42  8.5     8.25         10        10        10
+## 2  8.08   8.58       8.5     8.5   7.67    8.42         10        10        10
+## 3  8.17   8.17       8       8.17  8.08    8.33         10        10        10
+## 4  8.42   8.17       7.92    8.17  8.33    8            10        10        10
+## 5  8.5    8.5        8       8     8       8            10        10        10
+## 6  8      8          8       8.25  8       8.17         10        10        10
+## # ... with 2 more variables: total_cup_points <dbl>, process <fct>
+```
+
+### Logistic Regression
+
+The first model I wanted to test with the current recipe was logistic regression. The `accuracy` and `roc auc` were alright for a starting model.
+
+
+```
+## Warning: package 'rlang' was built under R version 4.0.4
+```
+
+```
+## i Fold01: preprocessor 1/1
+```
+
+```
+## v Fold01: preprocessor 1/1
+```
+
+```
+## i Fold01: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold01: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold01: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1
+```
+
+```
+## v Fold02: preprocessor 1/1
+```
+
+```
+## i Fold02: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold02: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold02: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1
+```
+
+```
+## v Fold03: preprocessor 1/1
+```
+
+```
+## i Fold03: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold03: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold03: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1
+```
+
+```
+## v Fold04: preprocessor 1/1
+```
+
+```
+## i Fold04: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold04: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold04: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1
+```
+
+```
+## v Fold05: preprocessor 1/1
+```
+
+```
+## i Fold05: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold05: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold05: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1
+```
+
+```
+## v Fold06: preprocessor 1/1
+```
+
+```
+## i Fold06: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold06: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold06: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1
+```
+
+```
+## v Fold07: preprocessor 1/1
+```
+
+```
+## i Fold07: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold07: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold07: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1
+```
+
+```
+## v Fold08: preprocessor 1/1
+```
+
+```
+## i Fold08: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold08: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold08: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1
+```
+
+```
+## v Fold09: preprocessor 1/1
+```
+
+```
+## i Fold09: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold09: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold09: preprocessor 1/1, model 1/1 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1
+```
+
+```
+## v Fold10: preprocessor 1/1
+```
+
+```
+## i Fold10: preprocessor 1/1, model 1/1
+```
+
+```
+## v Fold10: preprocessor 1/1, model 1/1
+```
+
+```
+## i Fold10: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 
 ```r
-set.seed(05132021)
-
-lr_mod <- linear_reg()  %>%
-  set_engine("glmnet") %>% 
-  set_mode("regression") %>%  
-  set_args(penalty = 0,
-           mixture = 0)
-
-lr_flo <- workflow() %>% 
-  add_recipe(char_recipe) %>% 
-  add_model(lr_mod)
-
-lr_fit <- tune::fit_resamples(object = lr_flo,
-                    resamples = coffee_fold,
-                    control = control_resamples(verbose = TRUE,
-                                                save_pred = TRUE))
+collect_metrics(lr_fit)
 ```
 
 ```
-## i Fold01: recipe
+## # A tibble: 3 x 6
+##   .metric     .estimator  mean     n std_err .config             
+##   <chr>       <chr>      <dbl> <int>   <dbl> <chr>               
+## 1 accuracy    binary     0.698    10 0.00342 Preprocessor1_Model1
+## 2 mn_log_loss binary     0.589    10 0.00775 Preprocessor1_Model1
+## 3 roc_auc     binary     0.648    10 0.0188  Preprocessor1_Model1
+```
+
+
+### Lasso Regression
+
+Now for the first penalized regression. The lasso regression did not improve in either metric. Let's try the next penalized regression. 
+
+
+```
+## i Fold01: preprocessor 1/1
 ```
 
 ```
-## v Fold01: recipe
+## v Fold01: preprocessor 1/1
 ```
 
 ```
-## i Fold01: model
+## i Fold01: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold01: model
+## v Fold01: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold01: model (predictions)
+## i Fold01: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold02: recipe
+## i Fold02: preprocessor 1/1
 ```
 
 ```
-## v Fold02: recipe
+## v Fold02: preprocessor 1/1
 ```
 
 ```
-## i Fold02: model
+## i Fold02: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold02: model
+## v Fold02: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold02: model (predictions)
+## i Fold02: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold03: recipe
+## i Fold03: preprocessor 1/1
 ```
 
 ```
-## v Fold03: recipe
+## v Fold03: preprocessor 1/1
 ```
 
 ```
-## i Fold03: model
+## i Fold03: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold03: model
+## v Fold03: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold03: model (predictions)
+## i Fold03: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold04: recipe
+## i Fold04: preprocessor 1/1
 ```
 
 ```
-## v Fold04: recipe
+## v Fold04: preprocessor 1/1
 ```
 
 ```
-## i Fold04: model
+## i Fold04: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold04: model
+## v Fold04: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold04: model (predictions)
+## i Fold04: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold05: recipe
+## i Fold05: preprocessor 1/1
 ```
 
 ```
-## v Fold05: recipe
+## v Fold05: preprocessor 1/1
 ```
 
 ```
-## i Fold05: model
+## i Fold05: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold05: model
+## v Fold05: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold05: model (predictions)
+## i Fold05: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold06: recipe
+## i Fold06: preprocessor 1/1
 ```
 
 ```
-## v Fold06: recipe
+## v Fold06: preprocessor 1/1
 ```
 
 ```
-## i Fold06: model
+## i Fold06: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold06: model
+## v Fold06: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold06: model (predictions)
+## i Fold06: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold07: recipe
+## i Fold07: preprocessor 1/1
 ```
 
 ```
-## v Fold07: recipe
+## v Fold07: preprocessor 1/1
 ```
 
 ```
-## i Fold07: model
+## i Fold07: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold07: model
+## v Fold07: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold07: model (predictions)
+## i Fold07: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold08: recipe
+## i Fold08: preprocessor 1/1
 ```
 
 ```
-## v Fold08: recipe
+## v Fold08: preprocessor 1/1
 ```
 
 ```
-## i Fold08: model
+## i Fold08: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold08: model
+## v Fold08: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold08: model (predictions)
+## i Fold08: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold09: recipe
+## i Fold09: preprocessor 1/1
 ```
 
 ```
-## v Fold09: recipe
+## v Fold09: preprocessor 1/1
 ```
 
 ```
-## i Fold09: model
+## i Fold09: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold09: model
+## v Fold09: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold09: model (predictions)
+## i Fold09: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold10: recipe
+## i Fold10: preprocessor 1/1
 ```
 
 ```
-## v Fold10: recipe
+## v Fold10: preprocessor 1/1
 ```
 
 ```
-## i Fold10: model
+## i Fold10: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold10: model
+## v Fold10: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold10: model (predictions)
-```
-
-```r
-lr_fit %>% 
-  collect_metrics()
-```
-
-```
-## # A tibble: 2 x 5
-##   .metric .estimator  mean     n std_err
-##   <chr>   <chr>      <dbl> <int>   <dbl>
-## 1 rmse    standard   0.936    10  0.133 
-## 2 rsq     standard   0.899    10  0.0248
-```
-
-```r
-lr_fit %>% 
-  collect_metrics(summarize = FALSE)
-```
-
-```
-## # A tibble: 20 x 4
-##    id     .metric .estimator .estimate
-##    <chr>  <chr>   <chr>          <dbl>
-##  1 Fold01 rmse    standard       0.394
-##  2 Fold01 rsq     standard       0.976
-##  3 Fold02 rmse    standard       0.834
-##  4 Fold02 rsq     standard       0.937
-##  5 Fold03 rmse    standard       0.927
-##  6 Fold03 rsq     standard       0.856
-##  7 Fold04 rmse    standard       1.33 
-##  8 Fold04 rsq     standard       0.987
-##  9 Fold05 rmse    standard       1.22 
-## 10 Fold05 rsq     standard       0.822
-## 11 Fold06 rmse    standard       1.73 
-## 12 Fold06 rsq     standard       0.779
-## 13 Fold07 rmse    standard       1.15 
-## 14 Fold07 rsq     standard       0.797
-## 15 Fold08 rmse    standard       0.537
-## 16 Fold08 rsq     standard       0.940
-## 17 Fold09 rmse    standard       0.531
-## 18 Fold09 rsq     standard       0.972
-## 19 Fold10 rmse    standard       0.701
-## 20 Fold10 rsq     standard       0.920
+## i Fold10: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 
 ```r
-set.seed(05132021)
-
-lasso_mod <- linear_reg()  %>%
-  set_engine("glmnet") %>% 
-  set_mode("regression") %>% 
-  set_args(penalty = 0,
-           mixture = 1)
-
-lasso_flo <- lr_flo %>% 
-  update_model(lasso_mod) 
-
-lasso_fit <- tune::fit_resamples(object = lasso_flo,
-                    resamples = coffee_fold,
-                    metrics = metric_set(rmse),
-                    control = control_resamples(verbose = TRUE,
-                                                save_pred = TRUE))
+collect_metrics(lasso_fit)
 ```
 
 ```
-## i Fold01: recipe
+## # A tibble: 3 x 6
+##   .metric     .estimator  mean     n std_err .config             
+##   <chr>       <chr>      <dbl> <int>   <dbl> <chr>               
+## 1 accuracy    binary     0.702    10 0.00397 Preprocessor1_Model1
+## 2 mn_log_loss binary     0.592    10 0.00850 Preprocessor1_Model1
+## 3 roc_auc     binary     0.645    10 0.0191  Preprocessor1_Model1
+```
+
+### Ridge Regression
+
+The ridge regression was shown to not be a good fitting model. So I tested an additional penalized regression while tuning hyper-parameters. 
+
+
+```
+## i Fold01: preprocessor 1/1
 ```
 
 ```
-## v Fold01: recipe
+## v Fold01: preprocessor 1/1
 ```
 
 ```
-## i Fold01: model
+## i Fold01: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold01: model
+## v Fold01: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold01: model (predictions)
+## i Fold01: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold02: recipe
+## i Fold02: preprocessor 1/1
 ```
 
 ```
-## v Fold02: recipe
+## v Fold02: preprocessor 1/1
 ```
 
 ```
-## i Fold02: model
+## i Fold02: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold02: model
+## v Fold02: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold02: model (predictions)
+## i Fold02: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold03: recipe
+## i Fold03: preprocessor 1/1
 ```
 
 ```
-## v Fold03: recipe
+## v Fold03: preprocessor 1/1
 ```
 
 ```
-## i Fold03: model
+## i Fold03: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold03: model
+## v Fold03: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold03: model (predictions)
+## i Fold03: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold04: recipe
+## i Fold04: preprocessor 1/1
 ```
 
 ```
-## v Fold04: recipe
+## v Fold04: preprocessor 1/1
 ```
 
 ```
-## i Fold04: model
+## i Fold04: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold04: model
+## v Fold04: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold04: model (predictions)
+## i Fold04: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold05: recipe
+## i Fold05: preprocessor 1/1
 ```
 
 ```
-## v Fold05: recipe
+## v Fold05: preprocessor 1/1
 ```
 
 ```
-## i Fold05: model
+## i Fold05: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold05: model
+## v Fold05: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold05: model (predictions)
+## i Fold05: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold06: recipe
+## i Fold06: preprocessor 1/1
 ```
 
 ```
-## v Fold06: recipe
+## v Fold06: preprocessor 1/1
 ```
 
 ```
-## i Fold06: model
+## i Fold06: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold06: model
+## v Fold06: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold06: model (predictions)
+## i Fold06: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold07: recipe
+## i Fold07: preprocessor 1/1
 ```
 
 ```
-## v Fold07: recipe
+## v Fold07: preprocessor 1/1
 ```
 
 ```
-## i Fold07: model
+## i Fold07: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold07: model
+## v Fold07: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold07: model (predictions)
+## i Fold07: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold08: recipe
+## i Fold08: preprocessor 1/1
 ```
 
 ```
-## v Fold08: recipe
+## v Fold08: preprocessor 1/1
 ```
 
 ```
-## i Fold08: model
+## i Fold08: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold08: model
+## v Fold08: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold08: model (predictions)
+## i Fold08: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold09: recipe
+## i Fold09: preprocessor 1/1
 ```
 
 ```
-## v Fold09: recipe
+## v Fold09: preprocessor 1/1
 ```
 
 ```
-## i Fold09: model
+## i Fold09: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold09: model
+## v Fold09: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold09: model (predictions)
+## i Fold09: preprocessor 1/1, model 1/1 (predictions)
 ```
 
 ```
-## i Fold10: recipe
+## i Fold10: preprocessor 1/1
 ```
 
 ```
-## v Fold10: recipe
+## v Fold10: preprocessor 1/1
 ```
 
 ```
-## i Fold10: model
+## i Fold10: preprocessor 1/1, model 1/1
 ```
 
 ```
-## v Fold10: model
+## v Fold10: preprocessor 1/1, model 1/1
 ```
 
 ```
-## i Fold10: model (predictions)
+## i Fold10: preprocessor 1/1, model 1/1 (predictions)
+```
+
+
+```rmetrics
+collect_metrics(ridge_fit)
+```
+
+### Elastic Net Regression
+
+The elastic net regression had slightly better accuracy than the non-penalized logistic regression but the ROC AUC was exactly the same. While the elastic net regression did not take long computationally due to the small amount of data, this model would not be chosen over the logistic regression. 
+
+
+```
+## i Fold01: preprocessor 1/1
+```
+
+```
+## v Fold01: preprocessor 1/1
+```
+
+```
+## i Fold01: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1
+```
+
+```
+## v Fold02: preprocessor 1/1
+```
+
+```
+## i Fold02: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1
+```
+
+```
+## v Fold03: preprocessor 1/1
+```
+
+```
+## i Fold03: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1
+```
+
+```
+## v Fold04: preprocessor 1/1
+```
+
+```
+## i Fold04: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1
+```
+
+```
+## v Fold05: preprocessor 1/1
+```
+
+```
+## i Fold05: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1
+```
+
+```
+## v Fold06: preprocessor 1/1
+```
+
+```
+## i Fold06: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1
+```
+
+```
+## v Fold07: preprocessor 1/1
+```
+
+```
+## i Fold07: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1
+```
+
+```
+## v Fold08: preprocessor 1/1
+```
+
+```
+## i Fold08: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1
+```
+
+```
+## v Fold09: preprocessor 1/1
+```
+
+```
+## i Fold09: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1
+```
+
+```
+## v Fold10: preprocessor 1/1
+```
+
+```
+## i Fold10: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 10/10 (predictions)
+```
+
+
+```r
+collect_metrics(elastic_fit)
+```
+
+```
+## # A tibble: 300 x 8
+##        penalty mixture .metric    .estimator  mean     n std_err .config        
+##          <dbl>   <dbl> <chr>      <chr>      <dbl> <int>   <dbl> <chr>          
+##  1    1   e-10       0 accuracy   binary     0.698    10 0.00342 Preprocessor1_~
+##  2    1   e-10       0 mn_log_lo~ binary     0.589    10 0.00775 Preprocessor1_~
+##  3    1   e-10       0 roc_auc    binary     0.648    10 0.0188  Preprocessor1_~
+##  4    1.29e- 9       0 accuracy   binary     0.698    10 0.00342 Preprocessor1_~
+##  5    1.29e- 9       0 mn_log_lo~ binary     0.589    10 0.00775 Preprocessor1_~
+##  6    1.29e- 9       0 roc_auc    binary     0.648    10 0.0188  Preprocessor1_~
+##  7    1.67e- 8       0 accuracy   binary     0.698    10 0.00342 Preprocessor1_~
+##  8    1.67e- 8       0 mn_log_lo~ binary     0.589    10 0.00775 Preprocessor1_~
+##  9    1.67e- 8       0 roc_auc    binary     0.648    10 0.0188  Preprocessor1_~
+## 10    2.15e- 7       0 accuracy   binary     0.698    10 0.00342 Preprocessor1_~
+## # ... with 290 more rows
 ```
 
 ```r
-lasso_fit %>% 
-  collect_metrics()
-```
-
-```
-## # A tibble: 1 x 5
-##   .metric .estimator  mean     n std_err
-##   <chr>   <chr>      <dbl> <int>   <dbl>
-## 1 rmse    standard   0.935    10   0.125
-```
-
-```r
-lasso_fit %>% 
-  collect_metrics(summarize = FALSE)
-```
-
-```
-## # A tibble: 10 x 4
-##    id     .metric .estimator .estimate
-##    <chr>  <chr>   <chr>          <dbl>
-##  1 Fold01 rmse    standard       0.407
-##  2 Fold02 rmse    standard       0.807
-##  3 Fold03 rmse    standard       0.930
-##  4 Fold04 rmse    standard       1.25 
-##  5 Fold05 rmse    standard       1.21 
-##  6 Fold06 rmse    standard       1.69 
-##  7 Fold07 rmse    standard       1.18 
-##  8 Fold08 rmse    standard       0.568
-##  9 Fold09 rmse    standard       0.590
-## 10 Fold10 rmse    standard       0.720
-```
-
-
-```r
-set.seed(05132021)
-
-elastic_tune_mod <- linear_reg()  %>%
-  set_engine("glmnet") %>% 
-  set_mode("regression") %>% 
-  set_args(penalty = tune(),
-           mixture = tune())
-
-elastic_tune_flo <- lr_flo %>% 
-  update_model(elastic_tune_mod) 
-
-elastic_grid <- grid_regular(penalty(), mixture(), levels = 10)
-
-elastic_fit <- tune_grid(elastic_tune_flo,
-                          resamples = coffee_fold,
-                          grid = elastic_grid,
-                    metrics = metric_set(rmse),
-                           control = tune::control_resamples(save_pred = TRUE))
-
-elastic_fit %>% 
-  collect_metrics(summarize = FALSE)
-```
-
-```
-## # A tibble: 1,000 x 7
-##    id           penalty mixture .metric .estimator .estimate .config 
-##    <chr>          <dbl>   <dbl> <chr>   <chr>          <dbl> <chr>   
-##  1 Fold01 0.0000000001        0 rmse    standard       0.394 Model001
-##  2 Fold01 0.00000000129       0 rmse    standard       0.394 Model002
-##  3 Fold01 0.0000000167        0 rmse    standard       0.394 Model003
-##  4 Fold01 0.000000215         0 rmse    standard       0.394 Model004
-##  5 Fold01 0.00000278          0 rmse    standard       0.394 Model005
-##  6 Fold01 0.0000359           0 rmse    standard       0.394 Model006
-##  7 Fold01 0.000464            0 rmse    standard       0.394 Model007
-##  8 Fold01 0.00599             0 rmse    standard       0.394 Model008
-##  9 Fold01 0.0774              0 rmse    standard       0.394 Model009
-## 10 Fold01 1                   0 rmse    standard       0.401 Model010
-## # ... with 990 more rows
-```
-
-```r
-elastic_fit %>% 
-  show_best(metric = "rmse", n = 5)
+show_best(elastic_fit, metric = "accuracy", n = 5)
 ```
 
 ```
 ## # A tibble: 5 x 8
-##         penalty mixture .metric .estimator  mean     n std_err .config 
-##           <dbl>   <dbl> <chr>   <chr>      <dbl> <int>   <dbl> <chr>   
-## 1 0.0000000001    0.111 rmse    standard   0.933    10   0.125 Model011
-## 2 0.00000000129   0.111 rmse    standard   0.933    10   0.125 Model012
-## 3 0.0000000167    0.111 rmse    standard   0.933    10   0.125 Model013
-## 4 0.000000215     0.111 rmse    standard   0.933    10   0.125 Model014
-## 5 0.00000278      0.111 rmse    standard   0.933    10   0.125 Model015
+##        penalty mixture .metric  .estimator  mean     n std_err .config          
+##          <dbl>   <dbl> <chr>    <chr>      <dbl> <int>   <dbl> <chr>            
+## 1     7.74e- 2   0.111 accuracy binary     0.703    10 0.00434 Preprocessor1_Mo~
+## 2     1   e-10   0.333 accuracy binary     0.703    10 0.00422 Preprocessor1_Mo~
+## 3     1.29e- 9   0.333 accuracy binary     0.703    10 0.00422 Preprocessor1_Mo~
+## 4     1.67e- 8   0.333 accuracy binary     0.703    10 0.00422 Preprocessor1_Mo~
+## 5     2.15e- 7   0.333 accuracy binary     0.703    10 0.00422 Preprocessor1_Mo~
 ```
 
 ```r
-elastic_fit %>% 
-  select_best(metric = "rmse")
+show_best(elastic_fit, metric = "roc_auc", n = 5)
+```
+
+```
+## # A tibble: 5 x 8
+##        penalty mixture .metric .estimator  mean     n std_err .config           
+##          <dbl>   <dbl> <chr>   <chr>      <dbl> <int>   <dbl> <chr>             
+## 1     1   e-10       0 roc_auc binary     0.648    10  0.0188 Preprocessor1_Mod~
+## 2     1.29e- 9       0 roc_auc binary     0.648    10  0.0188 Preprocessor1_Mod~
+## 3     1.67e- 8       0 roc_auc binary     0.648    10  0.0188 Preprocessor1_Mod~
+## 4     2.15e- 7       0 roc_auc binary     0.648    10  0.0188 Preprocessor1_Mod~
+## 5     2.78e- 6       0 roc_auc binary     0.648    10  0.0188 Preprocessor1_Mod~
+```
+
+```r
+select_best(elastic_fit, metric = "accuracy")
 ```
 
 ```
 ## # A tibble: 1 x 3
-##        penalty mixture .config 
-##          <dbl>   <dbl> <chr>   
-## 1 0.0000000001   0.111 Model011
+##   penalty mixture .config               
+##     <dbl>   <dbl> <chr>                 
+## 1  0.0774   0.111 Preprocessor1_Model019
 ```
 
 ```r
-elastic_fit %>% 
-  collect_metrics() %>% 
-  ggplot(aes(penalty, mean, color = .metric)) +
-  geom_errorbar(aes(ymin = mean - std_err,
-                    ymax = mean + std_err),
-                alpha = .5) +
-  geom_line(size = 1.25) 
+select_best(elastic_fit, metric = "roc_auc")
 ```
 
-<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+```
+## # A tibble: 1 x 3
+##        penalty mixture .config               
+##          <dbl>   <dbl> <chr>                 
+## 1 0.0000000001       0 Preprocessor1_Model001
+```
+
+### New Recipe
+
+Even though the elastic net regression was only slightly better, I decided to update the workflow using that model. This time I decided to update the recipe by including additional predictors like if there were any defects in the green coffee beans, the species of the coffee (e.g., Robusta and Arabica), and the country of origin. I also included additional steps in my recipe by transforming the category predictors and working with the factor predictors, like species, and country of origin. The inclusion of additional steps and the predictors created a better fitting model with the elastic net regression. 
+
+
+```
+## i Fold01: preprocessor 1/1
+```
+
+```
+## v Fold01: preprocessor 1/1
+```
+
+```
+## i Fold01: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold01: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold01: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold01: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1
+```
+
+```
+## v Fold02: preprocessor 1/1
+```
+
+```
+## i Fold02: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold02: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold02: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold02: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1
+```
+
+```
+## v Fold03: preprocessor 1/1
+```
+
+```
+## i Fold03: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold03: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold03: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold03: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1
+```
+
+```
+## v Fold04: preprocessor 1/1
+```
+
+```
+## i Fold04: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold04: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold04: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold04: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1
+```
+
+```
+## v Fold05: preprocessor 1/1
+```
+
+```
+## i Fold05: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold05: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold05: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold05: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1
+```
+
+```
+## v Fold06: preprocessor 1/1
+```
+
+```
+## i Fold06: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold06: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold06: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold06: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1
+```
+
+```
+## v Fold07: preprocessor 1/1
+```
+
+```
+## i Fold07: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold07: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold07: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold07: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1
+```
+
+```
+## v Fold08: preprocessor 1/1
+```
+
+```
+## i Fold08: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold08: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold08: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold08: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1
+```
+
+```
+## v Fold09: preprocessor 1/1
+```
+
+```
+## i Fold09: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold09: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold09: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold09: preprocessor 1/1, model 10/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1
+```
+
+```
+## v Fold10: preprocessor 1/1
+```
+
+```
+## i Fold10: preprocessor 1/1, model 1/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 1/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 1/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 2/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 2/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 2/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 3/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 3/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 3/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 4/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 4/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 4/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 5/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 5/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 5/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 6/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 6/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 6/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 7/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 7/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 7/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 8/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 8/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 8/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 9/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 9/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 9/10 (predictions)
+```
+
+```
+## i Fold10: preprocessor 1/1, model 10/10
+```
+
+```
+## v Fold10: preprocessor 1/1, model 10/10
+```
+
+```
+## i Fold10: preprocessor 1/1, model 10/10 (predictions)
+```
+
 
 ```r
-autoplot(elastic_fit, metric = "rmse") + geom_smooth(se = FALSE)
+collect_metrics(elastic_bal_fit) 
 ```
 
 ```
-## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
-```
-
-<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-2.png" width="672" />
-
-```r
-library(vip)
-```
-
-```
-## 
-## Attaching package: 'vip'
-```
-
-```
-## The following object is masked from 'package:utils':
-## 
-##     vi
+## # A tibble: 300 x 8
+##        penalty mixture .metric    .estimator  mean     n std_err .config        
+##          <dbl>   <dbl> <chr>      <chr>      <dbl> <int>   <dbl> <chr>          
+##  1    1   e-10       0 accuracy   binary     0.839    10 0.00923 Preprocessor1_~
+##  2    1   e-10       0 mn_log_lo~ binary     0.431    10 0.0153  Preprocessor1_~
+##  3    1   e-10       0 roc_auc    binary     0.840    10 0.0163  Preprocessor1_~
+##  4    1.29e- 9       0 accuracy   binary     0.839    10 0.00923 Preprocessor1_~
+##  5    1.29e- 9       0 mn_log_lo~ binary     0.431    10 0.0153  Preprocessor1_~
+##  6    1.29e- 9       0 roc_auc    binary     0.840    10 0.0163  Preprocessor1_~
+##  7    1.67e- 8       0 accuracy   binary     0.839    10 0.00923 Preprocessor1_~
+##  8    1.67e- 8       0 mn_log_lo~ binary     0.431    10 0.0153  Preprocessor1_~
+##  9    1.67e- 8       0 roc_auc    binary     0.840    10 0.0163  Preprocessor1_~
+## 10    2.15e- 7       0 accuracy   binary     0.839    10 0.00923 Preprocessor1_~
+## # ... with 290 more rows
 ```
 
 ```r
-elastic_train_best_fit <- elastic_fit %>%
-  select_best(metric = "rmse")
-
-final_workflow <- finalize_workflow(elastic_tune_flo, elastic_train_best_fit)
-
-final_workflow %>%
-  fit(coffee_train) %>%
-  pull_workflow_fit() %>%
-  vi(lambda = elastic_train_best_fit$penalty) %>%
-  mutate(
-    importance = abs(Importance),
-    variable = fct_reorder(Variable, importance)
-  ) %>%
-  ggplot(aes(x = importance, y = variable, fill = Sign)) +
-  geom_col() +
-  scale_x_continuous(expand = c(0, 0)) +
-  labs(y = NULL)
+show_best(elastic_bal_fit, metric = "accuracy", n = 5)
 ```
 
-<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-3.png" width="672" />
+```
+## # A tibble: 5 x 8
+##    penalty mixture .metric  .estimator  mean     n std_err .config              
+##      <dbl>   <dbl> <chr>    <chr>      <dbl> <int>   <dbl> <chr>                
+## 1 0.000464   0.111 accuracy binary     0.840    10 0.0101  Preprocessor1_Model0~
+## 2 0.000464   0.222 accuracy binary     0.840    10 0.0101  Preprocessor1_Model0~
+## 3 0.00599    0.111 accuracy binary     0.840    10 0.00933 Preprocessor1_Model0~
+## 4 0.00599    0.222 accuracy binary     0.840    10 0.00933 Preprocessor1_Model0~
+## 5 0.00599    0.333 accuracy binary     0.840    10 0.00933 Preprocessor1_Model0~
+```
+
+```r
+show_best(elastic_bal_fit, metric = "mn_log_loss", n = 5)
+```
+
+```
+## # A tibble: 5 x 8
+##    penalty mixture .metric    .estimator  mean     n std_err .config            
+##      <dbl>   <dbl> <chr>      <chr>      <dbl> <int>   <dbl> <chr>              
+## 1 0.000464   1     mn_log_lo~ binary     0.420    10  0.0179 Preprocessor1_Mode~
+## 2 0.000464   0.889 mn_log_lo~ binary     0.420    10  0.0178 Preprocessor1_Mode~
+## 3 0.000464   0.778 mn_log_lo~ binary     0.420    10  0.0178 Preprocessor1_Mode~
+## 4 0.000464   0.667 mn_log_lo~ binary     0.420    10  0.0178 Preprocessor1_Mode~
+## 5 0.000464   0.556 mn_log_lo~ binary     0.420    10  0.0177 Preprocessor1_Mode~
+```
+
+```r
+show_best(elastic_bal_fit, metric = "roc_auc", n = 5)
+```
+
+```
+## # A tibble: 5 x 8
+##    penalty mixture .metric .estimator  mean     n std_err .config               
+##      <dbl>   <dbl> <chr>   <chr>      <dbl> <int>   <dbl> <chr>                 
+## 1 0.00599    0.778 roc_auc binary     0.843    10  0.0150 Preprocessor1_Model078
+## 2 0.000464   0.667 roc_auc binary     0.843    10  0.0141 Preprocessor1_Model067
+## 3 0.00599    0.889 roc_auc binary     0.843    10  0.0148 Preprocessor1_Model088
+## 4 0.000464   0.444 roc_auc binary     0.843    10  0.0141 Preprocessor1_Model047
+## 5 0.000464   0.556 roc_auc binary     0.843    10  0.0141 Preprocessor1_Model057
+```
+
+```r
+select_best(elastic_bal_fit, metric = "accuracy")
+```
+
+```
+## # A tibble: 1 x 3
+##    penalty mixture .config               
+##      <dbl>   <dbl> <chr>                 
+## 1 0.000464   0.111 Preprocessor1_Model017
+```
+
+```r
+select_best(elastic_bal_fit, metric = "mn_log_loss")
+```
+
+```
+## # A tibble: 1 x 3
+##    penalty mixture .config               
+##      <dbl>   <dbl> <chr>                 
+## 1 0.000464       1 Preprocessor1_Model097
+```
+
+```r
+select_best(elastic_bal_fit, metric = "roc_auc")
+```
+
+```
+## # A tibble: 1 x 3
+##   penalty mixture .config               
+##     <dbl>   <dbl> <chr>                 
+## 1 0.00599   0.778 Preprocessor1_Model078
+```
+
+Now using the testing dataset, we can see how well the final model fit the testing data. While not the best at predicting washed green coffee beans, this was a good test to show that the penalized regressions are not always the best fitting models compared to regular logistic regression. In the end, it seemed like the recipe was the most important component to predicting washed green coffee beans. 
+
+
 
 
 ```r
-set.seed(05132021)
-
-test_set_model_results <- last_fit(final_workflow,
-                                   split = coffee_split)
-
-test_set_model_results %>%
+final_results %>%
   collect_metrics()
 ```
 
 ```
-## # A tibble: 2 x 3
-##   .metric .estimator .estimate
-##   <chr>   <chr>          <dbl>
-## 1 rmse    standard       0.920
-## 2 rsq     standard       0.877
+## # A tibble: 2 x 4
+##   .metric  .estimator .estimate .config             
+##   <chr>    <chr>          <dbl> <chr>               
+## 1 accuracy binary         0.823 Preprocessor1_Model1
+## 2 roc_auc  binary         0.817 Preprocessor1_Model1
 ```
-
-
 
