@@ -120,7 +120,7 @@ lr_flo <- workflow() %>%
 lr_fit <- tune::fit_resamples(object = lr_flo,
                     resamples = coffee_fold,
                     metrics = metric_measure,
-                    control = control_resamples(verbose = TRUE,
+                    control = control_resamples(verbose = FALSE,
                                                 save_pred = TRUE))
 
 ```
@@ -149,7 +149,7 @@ lasso_flo <- lr_flo %>%
 lasso_fit <- tune::fit_resamples(object = lasso_flo,
                     resamples = coffee_fold,
                     metrics = metric_measure,
-                    control = control_resamples(verbose = TRUE,
+                    control = control_resamples(verbose = FALSE,
                                                 save_pred = TRUE))
 ```
 
@@ -176,7 +176,7 @@ ridge_flo <- lasso_flo %>%
 ridge_fit <- tune::fit_resamples(object = ridge_flo,
                     resamples = coffee_fold,
                     metrics = metric_measure,
-                    control = control_resamples(verbose = TRUE,
+                    control = control_resamples(verbose = FALSE,
                                                 save_pred = TRUE))
 ```
 
@@ -206,7 +206,7 @@ elastic_fit <- tune_grid(elastic_tune_flo,
                           resamples = coffee_fold,
                           grid = elastic_grid,
                     metrics = metric_measure,
-                           control = tune::control_resamples(verbose = TRUE,
+                           control = tune::control_resamples(verbose = FALSE,
                                                              save_pred = TRUE))
 
 ```
@@ -246,7 +246,7 @@ elastic_bal_fit <- tune_grid(bal_flo,
                           resamples = coffee_fold,
                           grid = elastic_grid,
                     metrics = metric_measure,
-                           control = tune::control_resamples(verbose = TRUE,
+                           control = tune::control_resamples(verbose = FALSE,
                                                              save_pred = TRUE))
 ```
 
