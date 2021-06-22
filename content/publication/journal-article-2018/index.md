@@ -1,5 +1,6 @@
 ---
-abstract: This study investigated how technology use impacts academic performance. A proposed model postulated that academic
+abstract: 
+This study investigated how technology use impacts academic performance. A proposed model postulated that academic
 performance could be predicted by a cognitive independent variable–executive functioning problems–and an affective independent
 variable–technological anxiety or FOMO (fear of missing out)–mediated by how students choose to use technology. An unobtrusive
 smartphone application called “Instant Quantified Self” monitored daily smartphone un-locks and daily minutes of use. Other
@@ -14,8 +15,6 @@ classroom digital metacognition concerning attitudes toward mobile phone use dur
 professors include increasing metacognition about technology use in the classroom and taking “tech breaks” to reduce technology
 anxiety.
 author_notes:
-# - Equal contribution
-# - Equal contribution
 authors:
 - Larry D. Rosen
 - L. Mark Carrier
