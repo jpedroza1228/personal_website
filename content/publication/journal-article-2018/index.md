@@ -43,9 +43,7 @@ tags:
 - Executive Functioning
 - FOMO
 - Technology Use
-title: 
-The Role of Executive Functioning and TEchnological Anxiety (FOMO) in College Course Performance as 
-Mediated by Technology Usage and Multitasking Habits
+title: The Role of Executive Functioning and TEchnological Anxiety (FOMO) in College Course Performance as Mediated by Technology Usage and Multitasking Habits
 url_code: ""
 url_dataset: ""
 url_pdf: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8048369/pdf/nihms-1058029.pdf
