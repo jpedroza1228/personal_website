@@ -48,6 +48,7 @@ social:
 - icon: cv
   icon_pack: ai
   link: https://drive.google.com/file/d/1GbjOT36Nh_KaPjrq0ek7UrQ4sg2gdCGQ/view?usp=sharing
+  
 superuser: true
 title: Jonathan A. Pedroza (JP)
 ---
