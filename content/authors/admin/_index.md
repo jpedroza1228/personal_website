@@ -45,6 +45,9 @@ social:
 - icon: linkedin
   icon_pack: fab
   link: https://www.linkedin.com/in/jonathan-a-pedroza-5721a7120/
+- icon: cv
+  icon_pack: ai
+  link = https://drive.google.com/file/d/1GbjOT36Nh_KaPjrq0ek7UrQ4sg2gdCGQ/view?usp=sharing
 superuser: true
 title: Jonathan A. Pedroza (JP)
 ---
