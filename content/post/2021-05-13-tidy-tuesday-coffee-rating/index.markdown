@@ -335,6 +335,24 @@ select_best(elastic_fit, metric = "roc_auc")
 Even though the elastic net regression was only slightly better, I decided to update the workflow using that model. This time I decided to update the recipe by including additional predictors like if there were any defects in the green coffee beans, the species of the coffee (e.g., Robusta and Arabica), and the country of origin. I also included additional steps in my recipe by transforming the category predictors and working with the factor predictors, like species, and country of origin. The inclusion of additional steps and the predictors created a better fitting model with the elastic net regression. 
 
 
+```r
+set.seed(05132021)
+
+bal_rec <- recipe(process ~ aroma + flavor + aftertaste +
+                        acidity + body + balance + uniformity + clean_cup +
+                        sweetness + total_cup_points + category_one_defects + category_two_defects + species +
+                        country_of_origin,
+                      data = coffee_train) %>% 
+  step_BoxCox(category_two_defects, category_one_defects) %>% 
+  step_novel(species, country_of_origin) %>% 
+  step_other(species, country_of_origin, threshold = .01) %>%
+  step_unknown(species, country_of_origin) %>% 
+  step_dummy(species, country_of_origin) %>% 
+  step_zv(all_predictors(), -all_outcomes())
+```
+
+
+
 
 
 ```r
