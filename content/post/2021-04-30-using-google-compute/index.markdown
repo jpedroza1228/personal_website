@@ -1,8 +1,8 @@
 ---
-title: using google compute
+title: Using Google Compute
 author: ''
 date: '2021-04-30'
-slug: using-google-compute
+slug: Using-Google-Compute
 categories: []
 tags: []
 subtitle: ''
@@ -17,8 +17,7 @@ image:
 projects: []
 ---
 
-
-Here I will guide you through the creation of your own remote server of RStudio. If you are asking yourself "Why would I ever use a VM when I can do this on my local machine?" the two main reasons are to clear up space to do other tasks on your local machine and because you can request a stronger specifications for your VM to run things much faster. I'm sure everyone has been at that point where their analyses are running and then R decides to terminate your session. This will hopefully reduce the amount of times that happens to you. Before we begin, it is important that you have some things set up prior to trying to create a virtual machine (VM) using Google Cloud and Google Compute. In this tutorial, I'll be building a remote RStudio server and in the future, I may use this resource to run a shiny app. 
+Here I will guide you through the creation of your own remote server of RStudio. If you are asking yourself "Why would I ever use a VM when I can do this on my local machine?" the two main reasons are to clear up space to do other tasks on your local machine and because you can request stronger specifications for your VM to run things much faster. I'm sure everyone has been at that point where their analyses are running and then R decides to terminate your session. This will hopefully reduce the amount of times that happens to you. Before we begin, it is important that you have some things set up prior to trying to create a virtual machine (VM) using Google Cloud and Google Compute. In this tutorial, I'll be building a remote RStudio server and in the future, I may use this resource to run a shiny app. 
 
 ### Things you'll need
 
