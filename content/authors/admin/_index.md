@@ -54,6 +54,6 @@ title: Jonathan A. Pedroza (JP)
 
 Jonathan Pedroza (he/him; JP) is a recent graduate of the Prevention Science program at the University of Oregon. His interests include examining environmental factors that contribute to inequities of access and engagement in health behaviors, disseminating data to various audiences through data visualizations, using inferential and predictive modeling techniques to address health behavior engagement questions, and promoting open science. 
 
-JP is primarily trained in *R*, although recently he is starting to learn Python independently. Additionally, JP has been learning SQL for database management. Outside of work, JP enjoys everything coffee, fishing, playing with his cat, and going for long walks and bike rides. 
+JP is primarily trained in *R*, although recently he is starting to learn Python independently. Additionally, JP has been learning SQL for database management. Outside of work, JP enjoys everything coffee, fishing, hiking, cycling, and playing with his cat. 
 
 If you are interested in the work he does, you can follow up with any questions through email, github, linkedin, and/or his twitter account. 
