@@ -3,7 +3,7 @@ bio: My research interests include distributed robotics, mobile computing and pr
   matter.
 education:
   courses:
-  - course: PhD in Prevention Science with Data Science *specialization* in Educational Leadership
+  - course: PhD in Prevention Science
     institution: University of Oregon
     year: 2021
   - course: MS in Prevention Science
@@ -12,7 +12,7 @@ education:
   - course: MA in Health Psychology
     institution: California State University, Dominguez Hills
     year: 2017
-  - course: BA in Psychology with *Minor* in Chicana/o & Latina/o Studies
+  - course: BA in Psychology
     institution: California State Polytechnic University, Pomona
     year: 2014
 email: ""

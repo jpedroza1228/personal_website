@@ -1,6 +1,5 @@
 ---
 bio: My research interests revolve around addressing health inequities in underrepresented populations.
-
 education:
   courses:
   - course: PhD in Prevention Science
@@ -17,22 +16,17 @@ education:
     year: 2014
 	
 email: ""
-
 highlight_name: false
-
 interests:
 - Health inequities in Communities of Color
 - The role of acculturation in Latinx/a/o populations
 - Dissemination of research to diverse audiences
 - The role of environmental factors on physical activity
 - Physical activity and sedentary behaviors
-
 organizations:
 - name: California State Polytechnic University, Pomona
   url: https://www.cpp.edu/class/psychology/index.shtml
-  
 role: Lecturer in Psychology at Cal Poly Pomona
-
 social:
 - icon: envelope
   icon_pack: fas
@@ -55,9 +49,7 @@ social:
 - icon: cv
   icon_pack: ai
   link: https://drive.google.com/file/d/1GbjOT36Nh_KaPjrq0ek7UrQ4sg2gdCGQ/view?usp=sharing
-  
 superuser: true
-
 title: Jonathan A. Pedroza (JP)
 ---
 
