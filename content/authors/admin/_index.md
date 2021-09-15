@@ -14,7 +14,6 @@ education:
   - course: BA in Psychology
     institution: California State Polytechnic University, Pomona
     year: 2014
-	
 email: ""
 highlight_name: false
 interests:
