@@ -23,22 +23,78 @@ This data ended up becoming a real time commitment as there was no efficient way
 
 The [data](https://github.com/jpedroza1228/exitsurveys/blob/main/data/student_experience.csv) and other existing data files can be found [here](https://github.com/jpedroza1228/exitsurveys/tree/main/pdf_data/exit_surveys). When I have some more free time, I may decide to join the other datasets to the student experience data to examine some more interesting questions regarding this data. But for now, lets look at the student experience data.
 
-```{r loading in data}
-library(tidyverse)
 
+```r
+library(tidyverse)
+```
+
+```
+## Warning: package 'tidyverse' was built under R version 4.0.5
+```
+
+```
+## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
+```
+
+```
+## v ggplot2 3.3.3     v purrr   0.3.4
+## v tibble  3.1.1     v dplyr   1.0.5
+## v tidyr   1.1.3     v stringr 1.4.0
+## v readr   1.4.0     v forcats 0.5.1
+```
+
+```
+## Warning: package 'ggplot2' was built under R version 4.0.4
+```
+
+```
+## Warning: package 'tibble' was built under R version 4.0.5
+```
+
+```
+## Warning: package 'tidyr' was built under R version 4.0.5
+```
+
+```
+## Warning: package 'dplyr' was built under R version 4.0.5
+```
+
+```
+## Warning: package 'forcats' was built under R version 4.0.5
+```
+
+```
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+```
+
+```r
 theme_set(theme_minimal())
 
 exit <- read_csv("https://raw.githubusercontent.com/jpedroza1228/exitsurveys/main/data/student_experience.csv") %>% 
   janitor::clean_names() 
+```
 
+```
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   .default = col_double(),
+##   program = col_character()
+## )
+## i Use `spec()` for the full column specifications.
+```
+
+```r
 exit$program <- str_replace_all(exit$program,"_", " ")
 exit$program <- str_to_title(exit$program)
-
 ```
 
 These exit surveys have several questions that are broken down into percentages about how many of the students agreed or disagreed with the statement. For instance, from the pdf, the first statement is `Quality of the faculty` in a student's department. So we can look at that with this first plot. At the same time, we can also look at the difference between the two years of data. In order to look at all the variables at the same time that have the starting string of `fac_qual`, I'll use `pivot_longer` to collect any variable that has that variable string about faculty quality. Since the first and second table on the pdf refer to excellent or good or excellent levels of student satisfaction about faculty quality, I decided to filter out the excellent student satisfaction and move on with only student satisfaction that is either good or excellent. 
 
-```{r}
+
+```r
 exit %>% 
   pivot_longer(cols = tidyselect::vars_select(names(exit), starts_with("fac_qual")),
                names_to = "fac_qual", values_to = "fac_values") %>% 
@@ -55,9 +111,16 @@ exit %>%
         legend.title = element_blank())
 ```
 
+```
+## Warning: Removed 20 rows containing missing values (geom_col).
+```
+
+<img src="index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+
 So the first shot at making a visual for the two years looks a little cluttered because of using `geom_col()`. My first decision was to remove the columns and change those to points to make it a little less cluttered and clearer. I already enjoyed the way this looked better. I also decided to clean some things up by changing the names of the variables to better describe what the variables were assessing. I also decided to go back and change the programs to be title case and with spaces rather than underscores. 
 
-```{r}
+
+```r
 exit %>% 
   pivot_longer(cols = tidyselect::vars_select(names(exit), starts_with("fac_qual")),
                names_to = "fac_qual", values_to = "fac_values") %>% 
@@ -75,12 +138,18 @@ exit %>%
   scale_color_manual(values = c("#d74122","#669b3e")) +
   theme(legend.position = "bottom",
         legend.title = element_blank())
+```
 
 ```
+## Warning: Removed 20 rows containing missing values (geom_point).
+```
+
+<img src="index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
 Just in case anyone else is interested in this data, I also created a quick function to see how this visual looked like for other variables in the dataset. For instance, I'll look at a couple of different variables. 
 
-```{r}
+
+```r
 program_experience <- function(name){
   experience <- {{name}}
   
@@ -100,80 +169,12 @@ program_experience <- function(name){
   theme(legend.position = "bottom",
         legend.title = element_blank())
 }
-
 ```
 
 Below are all the variables from the dataset.
 
-```{r, eval = TRUE, echo = FAlSE}
-names(exit)
-```
 
 
-```{r}
-# student equitable treatment
-program_experience(name = "stu_equit")
-# inclusive of students of color
-program_experience(name = "inclu_stu_color")
-# inclusive of gender
-program_experience(name = "inclu_gender")
-# inclusive of international students
-program_experience(name = "inclu_intern_stu")
-# inclusive of students with disabilities
-program_experience(name = "inclu_stu_disab")
-# inclusive of first generation students
-program_experience(name = "inclu_first_gen")
-# inclusive of students of all sexual orientations
-program_experience(name = "inclu_stu_sex_orient")
-```
 
-Lastly, I decided to look into the difference between the variables I'm most interested in. First, I wanted to look at how graduate students perceive inclusiveness of students of color within their departments. Another variable I was interested in was inclusiveness of first-generation graduate students. Thanks to the `plotly` package I was able to include some interactive components to the visuals. Specifically zooming in to specific departments give a better idea of the difference between agreeing and disagreeing on these topics. With plotly, you can also click on an option in the legend to only see those values. I also removed the strongly agree option since the agree applied to students that strongly agreed or agreed with the statement. 
 
-```{r}
-library(plotly)
 
-stu_color <- exit %>% 
-  pivot_longer(cols = tidyselect::vars_select(names(exit), starts_with("inclu_stu_color")),
-               names_to = "stu_color", values_to = "stu_color_values") %>% 
-  filter(stu_color != "inclu_stu_color_strong") %>% 
-  mutate(stu_color = recode(stu_color, "inclu_stu_color_agree" = "Agree with Inclusive Environment for Students of Color",
-                           "inclu_stu_color_disagree" = "Disagree with Inclusive Environment for Students of Color")) %>% 
-  ggplot(aes(fct_reorder(program, stu_color_values), stu_color_values)) +
-  geom_point(aes(color = as.factor(year), shape = as.factor(stu_color)), size = 2) +
-  labs(title = "Faculty Quality by Academic Program",
-       x = "",
-       y = "Faculty Quality",
-       caption = "Data from University of Oregon's (UO)\nstudent satisfaction surveys after graduation") +
-  coord_flip() +
-  scale_color_manual(values = c("#d74122","#669b3e"))
-
-stu_plot <- ggplotly(stu_color)
-  # layout(legend = list(orientation = "h",
-                       # xanchor = "center",
-                       # x = 0,
-                       # y = -60)) 
-stu_plot
-
-firstgen <- exit %>% 
-  pivot_longer(cols = tidyselect::vars_select(names(exit), starts_with("inclu_first_gen")),
-               names_to = "first_gen", values_to = "first_gen_values") %>% 
-  filter(first_gen != "inclu_first_gen_strong") %>% 
-  mutate(first_gen = recode(first_gen, "inclu_first_gen_agree" = "Agree with Inclusive Environment for First Gen",
-                           "inclu_first_gen_disagree" = "Disagree with Inclusive Environment for First Gen")) %>% 
-  ggplot(aes(fct_reorder(program, first_gen_values), first_gen_values)) +
-  geom_point(aes(color = as.factor(year), shape = as.factor(first_gen)), size = 2) +
-  labs(title = "Faculty Quality by Academic Program",
-       x = "",
-       y = "Faculty Quality",
-       caption = "Data from University of Oregon's (UO)\nstudent satisfaction surveys after graduation") +
-  coord_flip() +
-  scale_color_manual(values = c("#d74122","#669b3e"))
-
-first_plot <- ggplotly(firstgen) 
-  # layout(legend = list(orientation = "h",
-  #                      xanchor = "center",
-  #                      x = 0,
-  #                      y = -60)) 
-first_plot
-
-```
