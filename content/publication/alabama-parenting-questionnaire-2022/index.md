@@ -50,7 +50,7 @@ abstract: Psychometrically sound parenting instruments are a critical aid in gui
   implications of parenting measures among adolescents with SUD histories.
 url_code: ''
 url_dataset: ''
-url_pdf: ''
+url_pdf: 'https://link.springer.com/content/pdf/10.1007/s10560-022-00849-1.pdf'
 url_poster: ''
 url_project: ''
 url_slides: ''
