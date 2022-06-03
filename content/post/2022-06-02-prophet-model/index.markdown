@@ -1,14 +1,14 @@
 ---
 title: Training and Testing a Prophet Model
 author: 'Jonathan A. Pedroza, PhD'
-date: '2022-06-03'
+date: '2022-06-02'
 slug: Training-Testing-Prophet-Model
 categories: []
 tags: []
 subtitle: ''
 summary: ''
 authors: []
-lastmod: '2022-06-03T20:40:36-07:00'
+lastmod: '2022-06-02T20:40:36-07:00'
 featured: no
 image:
   caption: ''
@@ -687,8 +687,8 @@ model_cali %>%
 
 ```r
 model_cali %>% 
-  modeltime_refit(data = future) %>% 
-  modeltime_forecast(new_data = future,
+  modeltime_refit(data = future_amer) %>% 
+  modeltime_forecast(new_data = future_amer,
                      actual_data = american) %>% 
   plot_modeltime_forecast(.interactive = FALSE) + 
   labs(title = 'Forecasted American Airlines Stock Prices')
