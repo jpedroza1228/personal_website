@@ -607,7 +607,7 @@ Let's take this a step further and see how well our algorithm fits on a differen
 
 
 ```r
-link <- 'https://docs.google.com/spreadsheets/d/1Ld9E_5Da9xaZ31VxLCQ41UG26FWjNXHBuU6YHqq1kaY/edit#gid=0'
+link <- 'https://docs.google.com/spreadsheets/d/11DWSWLFXT84uGg_mBvVYJevQOsN7ghYovJefH87BJXc/edit#gid=0'
 
 amer <- 
   googlesheets4::read_sheet(link) %>% 
@@ -665,7 +665,7 @@ future_amer <- american %>%
   future_frame(.length_out = '1 year', .bind_data = TRUE)
 
 future_amer <-
-  future %>%
+  future_amer %>%
   select(-year_num, -month_num, -day_num) %>%
   mutate(date2 = ds) %>%
   separate(col = date2,
@@ -687,7 +687,7 @@ model_cali %>%
 
 ```r
 model_cali %>% 
-  modeltime_refit(data = future_amer) %>% 
+  modeltime_refit(data = future_amer) %>%
   modeltime_forecast(new_data = future_amer,
                      actual_data = american) %>% 
   plot_modeltime_forecast(.interactive = FALSE) + 
