@@ -2,17 +2,36 @@
 date: "2022-03-16"
 linkTitle: PSY 3307
 summary: Slides and other materials for my course on statistics (PSY3307).
-title: "Statistics for Psychology"
+title: "\u03BC Statistics for Psychology \u03C3"
 type: book
 ---
 
-
-{{< figure src="featured.jpg" >}}
-
 {{< toc hide_on="xl" >}}
 
-## What you will learn
+## Topics Covered
 
-- Fundamental {{<hl>}}Python programming skills{{</hl>}}
-- {{<hl>}}Statistical concepts{{</hl>}} and how to apply them in practice
-- Gain experience with the {{<hl>}}Scikit{{</hl>}}, including data visualization with {{<hl>}}Plotly{{</hl>}} and data wrangling with {{<hl>}}Pandas{{</hl>}}
+- Descriptive Statistics
+- Probability
+- Normal Curve & Sampling Distribution
+- Hypothesis Testing
+- Z-scores
+- t-test
+- Visualizations
+- F-test
+- Correlation
+- Regression
+- Interactions
+  - Two-Way ANOVA
+  - Moderation
+
+## Course Overview
+
+These course materials include from the [book](https://edge.sagepub.com/field5e) *Discovering Statistics Using IBM SPSS Statistics* with code examples using the `mtcars` dataset and the `penguins` dataset from the package [palmerpenguins](https://allisonhorst.github.io/palmerpenguins/). These course materials should not be used as an alternative to an actual course/book on these topics. There are great dedicated books to learning these topics using *R*, such as [Learning Statistics with R](https://learningstatisticswithr.com/). 
+
+## Course Lectures
+
+{{< list_children >}}
+
+## Instructor
+
+{{< mention "admin" >}}
