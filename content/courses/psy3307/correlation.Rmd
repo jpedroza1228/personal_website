@@ -1,0 +1,16 @@
+---
+title: Correlation
+date: '2022-06-06'
+type: book
+weight: 70
+output:
+  github_document: default # put github_document *before* html_document
+  html_document: default
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_format = "all") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+```

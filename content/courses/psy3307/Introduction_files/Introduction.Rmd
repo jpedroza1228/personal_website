@@ -2,7 +2,7 @@
 title: Introduction
 date: '2022-06-06'
 type: book
-weight: 20
+weight: 10
 output:
   github_document: default # put github_document *before* html_document
   html_document: default
