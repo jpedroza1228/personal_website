@@ -1,6 +1,9 @@
-One-Way ANOVA
-================
-2022-06-06
+---
+title: "One-Way ANOVA"
+date: '2022-06-06'
+type: book
+weight: 50
+---
 
 Currently cleaning this chapter from the following
 [repository](https://github.com/jpedroza1228/cpp_3307)

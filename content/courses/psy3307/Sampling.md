@@ -1,6 +1,9 @@
-Sampling & Standard Error
-================
-2022-06-06
+---
+title: "Sampling & Standard Error"
+date: '2022-06-06'
+type: book
+weight: 20
+---
 
 Currently cleaning this chapter from the following
 [repository](https://github.com/jpedroza1228/cpp_3307)

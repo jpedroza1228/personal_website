@@ -1,6 +1,9 @@
-Moderation
-================
-2022-06-06
+---
+title: "Moderation"
+date: '2022-06-06'
+type: book
+weight: 90
+---
 
 Currently cleaning this chapter from the following
 [repository](https://github.com/jpedroza1228/cpp_3307)

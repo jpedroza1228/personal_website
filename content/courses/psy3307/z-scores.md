@@ -1,6 +1,9 @@
-Z-Scores
-================
-2022-06-06
+---
+title: "Z-Scores"
+date: '2022-06-06'
+type: book
+weight: 30
+---
 
 Currently cleaning this chapter from the following
 [repository](https://github.com/jpedroza1228/cpp_3307)

@@ -1,6 +1,9 @@
-t-Tests
-================
-2022-06-06
+---
+title: "t-Tests"
+date: '2022-06-06'
+type: book
+weight: 40
+---
 
 Currently cleaning this chapter from the following
 [repository](https://github.com/jpedroza1228/cpp_3307)
