@@ -1,9 +1,10 @@
 ---
-date: "2022-03-16"
+date: "2022-06-06"
 linkTitle: PSY 3307
 summary: Slides and other materials for my course on statistics (PSY3307).
-title: "\u03BC Statistics for Psychology \u03C3"
+title: "\u03BC Statistics for Psychology \u03BC"
 type: book
+weight: 1
 ---
 
 {{< toc hide_on="xl" >}}

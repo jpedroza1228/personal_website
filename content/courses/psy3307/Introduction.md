@@ -1,6 +1,9 @@
-Introduction
-================
-2022-06-06
+---
+title: "Introduction"
+date: '2022-06-06'
+type: book
+weight: 10
+---
 
 ## Common Designs
 
