@@ -18,3 +18,5 @@ url_video: ""
 ---
 
 This is an overview of my work in a rural community in Oregon. 
+
+![Under Construction](https://media.giphy.com/media/cfGmVRsJI6wq6noGxP/giphy.gif)
